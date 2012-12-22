@@ -1,6 +1,0 @@
-#!/bin/sh
-#original: /usr/lib64/subversion/contrib/hook-scripts/svnnotify --set-sender --repos-path "$1" --revision "$2" --to "pinmame-devel@lists.sourceforge.net" --subject-prefix "SF.net SVN: pinmame:" --subject-cx --no-first-line --viewcvs-url "http://sourceforge.net/p/pinmame/code/%s" --user-domain "users.sourceforge.net" --footer "This was sent by the SourceForge.net collaborative development platform, the world's largest Open Source development site." -l /usr/bin/svnlook --max-diff-length 100000
-/usr/bin/svnnotify --set-sender --repos-path "$1" --revision "$2" --to "pinmame-devel@lists.sourceforge.net" --subject-prefix "SF.net SVN: pinmame:" --subject-cx --no-first-line --viewcvs-url "http://sourceforge.net/p/pinmame/code/%s" --user-domain "users.sourceforge.net" -l /usr/bin/svnlook
-# --footer "This was sent by the SourceForge.net collaborative development platform, the world's largest Open Source development site."
-# --with-diff --max-diff-length 100000
-exit 0
