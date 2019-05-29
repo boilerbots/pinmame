@@ -255,6 +255,7 @@ void pindmdDeInit() {
 
 void renderDMDFrame(UINT64 gen, UINT16 width, UINT16 height, UINT8 *currbuffer, UINT8 doDumpFrame, const char* GameName, UINT32 noOfRawFrames, UINT8 *rawbuffer) {
 
+printf("renderDMDFrame\n");
 	dmd_width = width; // store for DeInit
 	dmd_height = height;
 	dmd_hasDMD = true;

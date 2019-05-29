@@ -758,88 +758,6 @@ void video_update_core_dmd(struct mame_bitmap *bitmap, const struct rectangle *c
 	  (_strnicmp(Machine->gamedrv->name, "smb", 3) == 0) || (_strnicmp(Machine->gamedrv->name, "cueball", 7) == 0) ||
 	  (core_gameData->gen == GEN_ALVG_DMD2));
 
-#ifdef VPINMAME
-
-  const UINT8 perc0 = (pmoptions.dmd_perc0  > 0) ? pmoptions.dmd_perc0  : 20;
-  const UINT8 perc1 = (pmoptions.dmd_perc33 > 0) ? pmoptions.dmd_perc33 : 33;
-  const UINT8 perc2 = (pmoptions.dmd_perc66 > 0) ? pmoptions.dmd_perc66 : 67;
-  const UINT8 perc3 = 100;
-
-  static const int levelgts3[16] = {0/*5*/, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100}; // GTS3 and AlvinG brightness seems okay
-  static const int levelsam[16]  = {0/*5*/, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100}; // SAM brightness seems okay
-
-  const int * const level = (core_gameData->gen == GEN_SAM) ? levelsam : levelgts3;
-
-  const UINT8 raw_4[4]   = {perc0,perc1,perc2,perc3};
-  const UINT8 raw_16[16] = {level[0],level[1],level[2],level[3],level[4],level[5],level[6],level[7],level[8],level[9],level[10],level[11],level[12],level[13],level[14],level[15]};
-
-  UINT32 palette32_4[4];
-  UINT32 palette32_16[16];
-  unsigned char palette[4][3];
-
-  int rStart = 0xFF, gStart = 0xE0, bStart = 0x20;
-  if ((pmoptions.dmd_red > 0) || (pmoptions.dmd_green > 0) || (pmoptions.dmd_blue > 0)) {
-	  rStart = pmoptions.dmd_red; gStart = pmoptions.dmd_green; bStart = pmoptions.dmd_blue;
-  }
-
-  /*-- Autogenerate DMD Color Shades--*/
-  palette[0][0] = rStart * perc0 / 100;
-  palette[0][1] = gStart * perc0 / 100;
-  palette[0][2] = bStart * perc0 / 100;
-  palette[1][0] = rStart * perc1 / 100;
-  palette[1][1] = gStart * perc1 / 100;
-  palette[1][2] = bStart * perc1 / 100;
-  palette[2][0] = rStart * perc2 / 100;
-  palette[2][1] = gStart * perc2 / 100;
-  palette[2][2] = bStart * perc2 / 100;
-  palette[3][0] = rStart * perc3 / 100;
-  palette[3][1] = gStart * perc3 / 100;
-  palette[3][2] = bStart * perc3 / 100;
-
-  /*-- If the "colorize" option is set, use the individual option colors for the shades --*/
-  if (pmoptions.dmd_colorize) {
-	  if (pmoptions.dmd_red0 > 0 || pmoptions.dmd_green0 > 0 || pmoptions.dmd_blue0 > 0) {
-		  palette[0][0] = pmoptions.dmd_red0;
-		  palette[0][1] = pmoptions.dmd_green0;
-		  palette[0][2] = pmoptions.dmd_blue0;
-	  }
-	  if (pmoptions.dmd_red33 > 0 || pmoptions.dmd_green33 > 0 || pmoptions.dmd_blue33 > 0) {
-		  palette[1][0] = pmoptions.dmd_red33;
-		  palette[1][1] = pmoptions.dmd_green33;
-		  palette[1][2] = pmoptions.dmd_blue33;
-	  }
-	  if (pmoptions.dmd_red66 > 0 || pmoptions.dmd_green66 > 0 || pmoptions.dmd_blue66 > 0) {
-		  palette[2][0] = pmoptions.dmd_red66;
-		  palette[2][1] = pmoptions.dmd_green66;
-		  palette[2][2] = pmoptions.dmd_blue66;
-	  }
-  }
-
-  for (ii = 0; ii < 4; ++ii)
-     palette32_4[ii] = (UINT32)palette[ii][0] | (((UINT32)palette[ii][1]) << 8) | (((UINT32)palette[ii][2]) << 16);
-
-  for(ii = 0; ii < 16; ++ii)
-     palette32_16[ii] = (rStart*level[ii]/100) | ((gStart*level[ii]/100) << 8) | ((bStart*level[ii]/100) << 16);
-
-  //
-
-  if(layout->length >= 128) // Capcom hack
-  {
-      g_raw_dmdx = layout->length;
-      g_raw_dmdy = layout->start;
-
-      // Strikes N' Spares has 2 standard DMDs
-      if (_strnicmp(Machine->gamedrv->name, "snspare", 7) == 0)
-      {
-          g_raw_dmdy = 64;
-          // shift offset into the raw DMDs, depending on which display is updated in here
-          if (layout->top != 0)
-              raw_dmdoffs = 128 * 32;
-          else
-              raw_dmdoffs = 0;
-      }
-  }
-#endif
 
   memset(&dotCol[layout->start+1][0], 0, sizeof(dotCol[0][0])*layout->length+1);
   memset(&dotCol[0][0], 0, sizeof(dotCol[0][0])*layout->length+1); // clear above
@@ -849,14 +767,6 @@ void video_update_core_dmd(struct mame_bitmap *bitmap, const struct rectangle *c
     if (ii > 0) {
       for (jj = 0; jj < layout->length; jj++) {
 		const UINT8 col = dotCol[ii][jj];
-#ifdef VPINMAME
-		const int offs = (ii-1)*layout->length + jj;
-		currbuffer[offs] = col;
-		if(layout->length >= 128) { // Capcom hack
-			g_raw_dmdbuffer[offs + raw_dmdoffs] = shade_16_enabled ? raw_16[col] : raw_4[col];
-			g_raw_colordmdbuffer[offs + raw_dmdoffs] = shade_16_enabled ? palette32_16[col] : palette32_4[col];
-		}
-#endif
 		*line++ = shade_16_enabled ? dmdColor[col+63] : dmdColor[col];
         if (locals.displaySize > 1 && jj < layout->length-1)
           *line++ = noaa ? 0 : aaColor[col + dotCol[ii][jj+1]];
@@ -878,100 +788,6 @@ void video_update_core_dmd(struct mame_bitmap *bitmap, const struct rectangle *c
   osd_mark_dirty(layout->left*locals.displaySize,layout->top*locals.displaySize,
                  (layout->left+layout->length)*locals.displaySize,(layout->top+layout->start)*locals.displaySize);
 
-#ifdef VPINMAME
-
-  if ((layout->length == 128) || (layout->length == 192) || (layout->length == 256)) { // filter 16x8 output from Flipper Football
-
-	  //external dmd
-	  if (g_fShowPinDMD)
-		  renderDMDFrame(core_gameData->gen, layout->length, layout->start, currbuffer, g_fDumpFrames, Machine->gamedrv->name, g_raw_gtswpc_dmdframes, g_raw_gtswpc_dmd);
-
-	  if (oldbuffer != NULL) {	  // detect if same frame again
-		  if (memcmp(oldbuffer, currbuffer, (layout->length * layout->start)))
-		  {
-			  g_needs_DMD_update = 1;
-
-			  if ((g_fShowPinDMD && g_fShowWinDMD) || g_fDumpFrames)	// output dump frame to .txt
-			  {
-				  FILE *f;
-				  char *ptr;
-				  char DumpFilename[MAX_PATH];
-
-				  const DWORD tick = GetTickCount();
-#ifndef _WIN64
-				  const HINSTANCE hInst = GetModuleHandle("VPinMAME.dll");
-#else
-				  const HINSTANCE hInst = GetModuleHandle("VPinMAME64.dll");
-#endif
-				  GetModuleFileName(hInst, DumpFilename, MAX_PATH);
-				  ptr = strrchr(DumpFilename, '\\');
-				  strcpy_s(ptr + 1, 11, "DmdDump\\");
-				  strcat_s(DumpFilename, MAX_PATH, Machine->gamedrv->name);
-
-				  if (g_raw_gtswpc_dmdframes != 0) {
-					  FILE* fr;
-					  char RawFilename[MAX_PATH];
-					  strcpy_s(RawFilename, MAX_PATH, DumpFilename);
-					  strcat_s(RawFilename, MAX_PATH, ".raw");
-					  fr = fopen(RawFilename, "rb");
-					  if (fr) {
-						  fclose(fr);
-						  fr = fopen(RawFilename, "ab");
-					  }
-					  else {
-						  fr = fopen(RawFilename, "ab");
-						  if(fr)
-						  {
-							  fputc(0x52, fr);
-							  fputc(0x41, fr);
-							  fputc(0x57, fr);
-							  fputc(0x00, fr);
-							  fputc(0x01, fr);
-							  fputc(layout->length, fr);
-							  fputc(layout->start, fr);
-							  fputc(g_raw_gtswpc_dmdframes, fr);
-						  }
-					  }
-					  if(fr)
-					  {
-						  fwrite(&tick, 1, 4, fr);
-						  fwrite(g_raw_gtswpc_dmd, 1, (layout->length * layout->start / 8 * g_raw_gtswpc_dmdframes), fr);
-						  fclose(fr);
-					  }
-				  }
-
-				  strcat_s(DumpFilename, MAX_PATH, ".txt");
-				  f = fopen(DumpFilename, "a");
-				  if (f) {
-					  fprintf(f, "0x%08x\n", tick);
-					  for (jj = 0; jj < layout->start; jj++) {
-						  for (ii = 0; ii < layout->length; ii++)
-						  {
-							  const UINT8 col = currbuffer[jj*layout->length + ii];
-							  fprintf(f, "%01x", col);
-						  }
-						  fprintf(f, "\n");
-					  }
-					  fprintf(f, "\n");
-					  fclose(f);
-				  }
-			  }
-		  }
-	  }
-
-	  g_raw_gtswpc_dmdframes = 0;
-
-	  // swap buffers
-	  if (currbuffer == buffer1) {
-		  currbuffer = buffer2;
-		  oldbuffer = buffer1;
-	  }
-	  else {
-		  currbuffer = buffer1;
-		  oldbuffer = buffer2;
-	  }
-  }
-#endif
 }
 #ifdef VPINMAME
 #  define inRect(r,l,t,w,h) FALSE
@@ -996,7 +812,11 @@ static void updateDisplay(struct mame_bitmap *bitmap, const struct rectangle *cl
   int total_disp=0;
 #endif
 
-  if (layout == NULL) { DBGLOG(("gen_refresh without LCD layout\n")); return; }
+  if (layout == NULL) 
+  { 
+    DBGLOG(("gen_refresh without LCD layout\n")); 
+    return; 
+  }
 
 #ifdef VPINMAME
   memset(seg_data, 0, CORE_SEGCOUNT*sizeof(UINT16));
@@ -1004,12 +824,19 @@ static void updateDisplay(struct mame_bitmap *bitmap, const struct rectangle *cl
   disp_num_segs[0] = 0;
 #endif
 
-  for (; layout->length; layout += 1) {
+  for (; layout->length; layout += 1) 
+  {
     if (layout->type == CORE_IMPORT)
-      { updateDisplay(bitmap, cliprect, layout->lptr, pos); continue; }
+    { 
+      updateDisplay(bitmap, cliprect, layout->lptr, pos); 
+      continue; 
+    }
+
     if (layout->fptr)
-      if (((ptPinMAMEvidUpdate)(layout->fptr))(bitmap,cliprect,layout) == 0) continue;
     {
+      if (((ptPinMAMEvidUpdate)(layout->fptr))(bitmap,cliprect,layout) == 0)
+        continue;
+
       int left  = layout->left * (locals.segData[layout->type & CORE_SEGMASK].cols+1) / 2;
       int top   = layout->top  * (locals.segData[0].rows + 1) / 2;
       int ii    = layout->length;
@@ -1037,7 +864,8 @@ static void updateDisplay(struct mame_bitmap *bitmap, const struct rectangle *cl
         if(1) {
 #else
         if ((tmpSeg != *lastSeg) ||
-            inRect(cliprect,left,top,locals.segData[layout->type & CORE_SEGALL].cols,locals.segData[layout->type & CORE_SEGALL].rows)) {
+            inRect(cliprect,left,top,locals.segData[layout->type & CORE_SEGALL].cols,locals.segData[layout->type & CORE_SEGALL].rows)) 
+        {
 #endif
           tmpSeg >>= (layout->type & CORE_SEGHIBIT) ? 8 : 0;
 
@@ -1094,7 +922,7 @@ static void updateDisplay(struct mame_bitmap *bitmap, const struct rectangle *cl
         seg += step; lastSeg += step;
       }
 #ifdef PROC_SUPPORT
-        		if (coreGlobals.p_rocEn) {
+      if (coreGlobals.p_rocEn) {
 				if ((core_gameData->gen & (GEN_WPCALPHA_1 | GEN_WPCALPHA_2 | GEN_ALLS11)) &&
 				    (!pmoptions.alpha_on_dmd)) {
 					procUpdateAlphaDisplay(proc_top, proc_bottom);
@@ -1112,28 +940,31 @@ static void updateDisplay(struct mame_bitmap *bitmap, const struct rectangle *cl
 #endif
 }
 
+/*
+  Main video update function. -Curt
+*/
 VIDEO_UPDATE(core_gen) {
   int count = 0;
-#ifdef PROC_SUPPORT
-	int alpha = core_gameData->gen & GEN_WPCALPHA_1 || core_gameData->gen & GEN_WPCALPHA_2 || core_gameData->gen & GEN_ALLS11;
-	if (coreGlobals.p_rocEn) {
-		if (pmoptions.alpha_on_dmd && alpha) {
-			procClearDMD();
-		}
-	}
-	// If we don't want the DMD displayed on the screen, skip this code
-	if (pmoptions.virtual_dmd) {
-#endif
+//#ifdef PROC_SUPPORT
+//	int alpha = core_gameData->gen & GEN_WPCALPHA_1 || core_gameData->gen & GEN_WPCALPHA_2 || core_gameData->gen & GEN_ALLS11;
+//	if (coreGlobals.p_rocEn) {
+//		if (pmoptions.alpha_on_dmd && alpha) {
+//			procClearDMD();
+//		}
+//	}
+//	// If we don't want the DMD displayed on the screen, skip this code
+//	if (pmoptions.virtual_dmd) {
+//#endif
   updateDisplay(bitmap, cliprect, core_gameData->lcdLayout, &count);
   memcpy(locals.lastSeg, coreGlobals.segments, sizeof(locals.lastSeg));
-#ifdef PROC_SUPPORT
-	}
-	if (coreGlobals.p_rocEn) {
-		if (pmoptions.alpha_on_dmd && alpha) {
-			procUpdateDMD();
-		}
-	}
-#endif
+//#ifdef PROC_SUPPORT
+//	}
+//	if (coreGlobals.p_rocEn) {
+//		if (pmoptions.alpha_on_dmd && alpha) {
+//			procUpdateDMD();
+//		}
+//	}
+//#endif
   video_update_core_status(bitmap,cliprect);
 }
 
@@ -1804,6 +1635,8 @@ static MACHINE_INIT(core) {
       }
     }
     /*-- Sound enabled ? */
+    //printf("coreGlobals.soundEn=%d\n", coreGlobals.soundEn);
+    //coreGlobals.soundEn = TRUE;
     if (((Machine->gamedrv->flags & GAME_NO_SOUND) == 0) && Machine->sample_rate)
       coreGlobals.soundEn = TRUE;
 

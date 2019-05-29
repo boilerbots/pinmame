@@ -470,21 +470,23 @@ BINDIR = $(PREFIX)/bin
 MANDIR = $(PREFIX)/share/man/man6
 
 # This is the default path for ROMs and other data files.
-XMAMEROOT = $(PREFIX)/share/x$(TARGET)
+#XMAMEROOT = $(PREFIX)/share/x$(TARGET)
+XMAMEROOT = $(HOME)/mame
 
 
 ###########################################################################
 # Architecture; choose your CPU (only one!!) 
 ###########################################################################
 
+#MY_CPU = x86-64
 # i386, GNU asm
-# MY_CPU = i386
+MY_CPU = i386
 
 # i386, no asm -- needed for the Intel C++ compiler, which does not fully
 # understand gcc's inline assembly syntax, though you may still enable 
 # X86_ASM_68000, etc., which are assembled by NASM.  You may also need to 
 # use this for BeOS.
-MY_CPU = i386_noasm
+#MY_CPU = i386_noasm
 
 # IA64
 # MY_CPU = ia64
@@ -592,10 +594,10 @@ ARCH  = linux
 # Choose any additonal sound drivers you want to include, besides the 
 # native sound driver for your system.
 # SOUND_ESOUND = 1
-# SOUND_ALSA = 1
+SOUND_ALSA = 1
 # SOUND_ARTS_TEIRA = 1
 # SOUND_ARTS_SMOTEK = 1
-# SOUND_SDL = 1
+SOUND_SDL = 1
 # SOUND_WAVEOUT = 1
 
 
@@ -619,7 +621,7 @@ DISPLAY_METHOD = x11
 # DISPLAY_METHOD = ggi
 
 # OpenGL under X11
-# DISPLAY_METHOD = xgl
+#DISPLAY_METHOD = xgl
 
 # Glide under X11
 # DISPLAY_METHOD = xfx
@@ -668,12 +670,12 @@ X11_XV = 1
 # Choose the location of your X headers and libraries.
 
 # Standard location for X11 
-# X11INC		= -I/usr/include/X11
-# X11LIB		= -L/usr/lib/X11
+X11INC		= -I/usr/include/X11
+X11LIB		= -L/usr/lib/X11
 
 # Standard location for XFree86
-X11INC		= -I/usr/X11R6/include
-X11LIB		= -L/usr/X11R6/lib
+#X11INC		= -I/usr/X11R6/include
+#X11LIB		= -L/usr/X11R6/lib
 
 # Standard location for Sun systems
 # X11INC		= -I/usr/openwin/include
@@ -685,11 +687,11 @@ X11LIB		= -L/usr/X11R6/lib
 
 # The default name for the input device used by the X11 joystick driver.
 # Use provided program "xlistdev" to list available ones.
-X11_JOYNAME = "Joystick"
+#X11_JOYNAME = "Joystick"
 
 # Uncomment this to use XInput devices, e.g. additional mice as 
 # trackballs.
-# XINPUT_DEVICES = 1
+#XINPUT_DEVICES = 1
 
 
 ##############################################################################
@@ -743,7 +745,7 @@ CFLAGS += -DNDEBUG
 # Uncomment the next lines to build xmame with a built-in debugger (only
 # supported for X11 and SVGALib). Only enable this if you need it -- if you
 # want to develop drivers, that is, since it slows down xmame considerably.
-# DEBUG = 1
+#DEBUG = 1
 
 ifdef DEBUG
 NAME=x$(TARGET)d

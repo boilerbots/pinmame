@@ -594,6 +594,7 @@ READ_HANDLER(wpc_r) {
       return 1<<(wpc_data[offset] & 0x07);
     case WPC_FIRQSRC: /* FIRQ source */
       //DBGLOG(("R:FIRQSRC\n"));
+      //printf("%c", (wpclocals.firqSrc & WPC_FIRQ_DMD) ? '*' : ' ');
       return (wpclocals.firqSrc & WPC_FIRQ_DMD) ? 0x00 : 0x80;
     case WPC_DIPSWITCH:
       return core_getDip(0);
@@ -855,6 +856,7 @@ WRITE_HANDLER(wpc_w) {
       wpc_firq(FALSE, WPC_FIRQ_DMD);
       break;
     case DMD_VISIBLEPAGE: /* set the visible page */
+      //printf("\nSET DMD_VISIBLEPAGE: %x\n", data);
       break;
     case WPC_RTCHOUR:
     case WPC_RTCMIN:
@@ -1201,6 +1203,7 @@ static VIDEO_START(wpc_dmd) {
   UINT8 *RAM = memory_region(WPC_DMDREGION);
   int ii;
 
+printf("map the DMD memory\n");
   for (ii = 0; ii < DMD_FRAMES; ii++)
     dmdlocals.DMDFrames[ii] = RAM;
   dmdlocals.nextDMDFrame = 0;
@@ -1212,41 +1215,47 @@ PINMAME_VIDEO_UPDATE(wpcdmd_update) {
   tDMDDot dotCol;
   int ii,jj,kk;
 
-#ifdef VPINMAME
-  g_raw_gtswpc_dmdframes = DMD_FRAMES;
-#endif
+  //if (dmdlocals.nextDMDFrame == 0)
+  {
+    for (int yy = 0; yy < 33; yy++)
+    {
+      for (int xx = 0; xx < 129; xx++)
+      {
+        UINT8 pixel = dotCol[yy][xx];
+        printf("%u", pixel);
+      }
+      printf("\n");
+    }
+    printf("frame=%d\n", dmdlocals.nextDMDFrame);
+  }
 
   /* Create a temporary buffer with all pixels */
-  for (kk = 0, ii = 1; ii < 33; ii++) {
-    UINT8 *line = &dotCol[ii][0];
-    for (jj = 0; jj < 16; jj++) {
+  for (kk = 0, ii = 1; ii < 33; ii++) 
+  {
+    UINT8 *column = &dotCol[ii][0];
+    for (jj = 0; jj < 16; jj++) 
+    {
       /* Intensity depends on how many times the pixel */
       /* been on in the last 3 frames                  */
-      const unsigned int intens1 = ((dmdlocals.DMDFrames[0][kk] & 0x55) +
+      unsigned int intens1 = ((dmdlocals.DMDFrames[0][kk] & 0x55) +
                                     (dmdlocals.DMDFrames[1][kk] & 0x55) +
                                     (dmdlocals.DMDFrames[2][kk] & 0x55));
-      const unsigned int intens2 = ((dmdlocals.DMDFrames[0][kk] & 0xaa) +
+      unsigned int intens2 = ((dmdlocals.DMDFrames[0][kk] & 0xaa) +
                                     (dmdlocals.DMDFrames[1][kk] & 0xaa) +
                                     (dmdlocals.DMDFrames[2][kk] & 0xaa));
 
-#ifdef VPINMAME
-      g_raw_gtswpc_dmd[kk        ] = dmdlocals.DMDFrames[0][kk];
-      g_raw_gtswpc_dmd[kk + 0x200] = dmdlocals.DMDFrames[1][kk];
-      g_raw_gtswpc_dmd[kk + 0x400] = dmdlocals.DMDFrames[2][kk];
-#endif
-
-      *line++ = (intens1)    & 0x03;
-      *line++ = (intens2>>1) & 0x03;
-      *line++ = (intens1>>2) & 0x03;
-      *line++ = (intens2>>3) & 0x03;
-      *line++ = (intens1>>4) & 0x03;
-      *line++ = (intens2>>5) & 0x03;
-      *line++ = (intens1>>6) & 0x03;
-      *line++ = (intens2>>7) & 0x03;
+      *column++ = (intens1)    & 0x03;
+      *column++ = (intens2>>1) & 0x03;
+      *column++ = (intens1>>2) & 0x03;
+      *column++ = (intens2>>3) & 0x03;
+      *column++ = (intens1>>4) & 0x03;
+      *column++ = (intens2>>5) & 0x03;
+      *column++ = (intens1>>6) & 0x03;
+      *column++ = (intens2>>7) & 0x03;
 
       kk++;
     }
-    *line = 0; /* to simplify antialiasing */
+    *column = 0; /* to simplify antialiasing */
   }
   video_update_core_dmd(bitmap, cliprect, dotCol, layout);
   return 0;
