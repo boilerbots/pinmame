@@ -34,7 +34,7 @@
 
 # Uncomment one of these.
 TARGET = pinmame
-# AVICAPTURE = 1
+AVICAPTURE = 1
 # TARGET = mame
 # TARGET = mess
 # TARGET = neomame

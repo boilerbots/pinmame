@@ -1215,6 +1215,7 @@ PINMAME_VIDEO_UPDATE(wpcdmd_update) {
   tDMDDot dotCol;
   int ii,jj,kk;
 
+#if 0
   //if (dmdlocals.nextDMDFrame == 0)
   {
     for (int yy = 0; yy < 33; yy++)
@@ -1228,6 +1229,7 @@ PINMAME_VIDEO_UPDATE(wpcdmd_update) {
     }
     printf("frame=%d\n", dmdlocals.nextDMDFrame);
   }
+#endif
 
   /* Create a temporary buffer with all pixels */
   for (kk = 0, ii = 1; ii < 33; ii++) 

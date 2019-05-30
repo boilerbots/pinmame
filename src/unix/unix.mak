@@ -230,7 +230,7 @@ endif
 
 ifdef AVICAPTURE
 MY_CFLAGS += -DAVICAPTURE
-MY_LIBS += -lavcodec -lmp3lame
+MY_LIBS += -lavcodec -lmp3lame -lavutil -lswscale
 OBJS += $(OBJ)/unix.x11/video-drivers/x11-avi.o
 endif
    
