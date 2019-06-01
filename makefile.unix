@@ -99,7 +99,7 @@ AVICAPTURE = 1
 
 #CC	= /usr/i686-pc-linux-gnu/gcc-bin/3.4.6/gcc
 #CC	= gcc-3.4.6
-CC    = cc
+CC    = gcc
 # CC	= icc
 # CC	= c89
 
@@ -192,8 +192,8 @@ ifneq (,$(findstring gcc,$(CC)))
   # CFLAGS += -std=c89
 
   # Enable debugging (e.g., using gdb).
-  # CFLAGS += -ggdb
-
+CFLAGS += -g -ggdb
+CPPFLAGS += -g -ggdb
 
   #########################################################################
   # General optimizations
@@ -202,7 +202,7 @@ ifneq (,$(findstring gcc,$(CC)))
   # Optimization level -- choose one of these.
   # Use -O1 if you suspect that -O2 is producing bad code; use -O3 for a 
   # possible speedup; use -Os for a smaller executable.
-CFLAGS += -O2
+#CFLAGS += -O2
   # CFLAGS += -O1
   # CFLAGS += -O3
   # CFLAGS += -Os
@@ -226,7 +226,7 @@ CFLAGS += -pipe
   # Unroll loops for a possible speedup.  Beware that combining this with 
   # -O2 in gcc-3.0.x on x86 platforms miscompiles src/sndhrdw/williams.c, 
   # causing narc (and possibly other games) to segfault.
-CFLAGS += -funroll-loops
+#CFLAGS += -funroll-loops
 
   # Produce faster floating point code that isn't IEEE/ISO-compliant.
   # CFLAGS += -ffast-math
@@ -364,7 +364,8 @@ IL	= '-DINLINE=static __inline__'
 
 # Normal linking.
 #LD	= $(CC) -Wl,-s
-LD	= g++ -Wl,-s
+#LD	= g++ -Wl,-s
+LD	= g++
 
 # For the Intel C++ Compiler -- expect large link time due to -ipo 
 # optimization.
@@ -740,7 +741,7 @@ GLCFLAGS+=-DGLXLIB_NAME='\"libglut.so\"'
 
 # Comment out the next line if you want to compile CPU disassemblers in
 # MAME for debugging.
-CFLAGS += -DNDEBUG
+#CFLAGS += -DNDEBUG
 
 # Uncomment the next lines to build xmame with a built-in debugger (only
 # supported for X11 and SVGALib). Only enable this if you need it -- if you

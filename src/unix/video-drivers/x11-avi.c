@@ -8,30 +8,27 @@
 #include "input.h"
 #include "keyboard.h"
  
-//typedef unsigned char uint8_t;
-//typedef unsigned short uint16_t;
-//typedef unsigned int uint32_t;
-//typedef unsigned long long uint64_t;
-
 #include <libavutil/common.h>
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
 
-const int BUFFSIZE=1000000;
 FILE * video_outf;
 AVCodec * avc;
 AVCodecContext * avctx;
 struct SwsContext *ctx;
 AVPicture inpic, outpic;
-char * output_buffer;
 AVFrame * pic;
 AVPacket * avpkt;
 static int frame_count = 0;
 int frame_halver=2; // save each frame=1,  save every other frame=2
+static unsigned int *dumpbig = NULL;
+static unsigned char *myoutframe;
+static int framecnt=0;
 
 void init_dumper( int width, int height )
 {  
   double fps = Machine->drv->frames_per_second / (double)frame_halver;
+  framecnt=0;
 
   printf("init_dumper: width=%d  height=%d\n", width, height);
   avcodec_register_all();
@@ -46,9 +43,8 @@ void init_dumper( int width, int height )
 
   avctx = avcodec_alloc_context3(avc);
   ctx = sws_getContext(width, height, AV_PIX_FMT_BGR24, width, height, AV_PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL);
-#if 1
+
   /* sample parameters */
-  //avctx->me_method = ME_LOG;
   avctx->pix_fmt = AV_PIX_FMT_YUV420P;
   avctx->bit_rate = 2500000;
   avctx->width = width;
@@ -57,9 +53,6 @@ void init_dumper( int width, int height )
   avctx->time_base.den = fps;
   avctx->gop_size=10;
   avctx->max_b_frames=1;
-  //avctx->draw_horiz_band = NULL;
-  //avctx->idct_algo = FF_IDCT_AUTO;
-#endif
 
   int ret = avcodec_open2( avctx, avc, NULL );
   if (ret)
@@ -68,36 +61,17 @@ void init_dumper( int width, int height )
       exit( 1 );
     }
   
-  int size=height*width;
   
   pic = av_frame_alloc();
   avpkt = av_packet_alloc();
   
-  //avpkt->data=(char *)malloc(BUFFSIZE); /* Find where this value comes from */
-  //avpkt->size = BUFFSIZE;
-  
   av_image_alloc( &outpic.data, &outpic.linesize, width, height, AV_PIX_FMT_YUV420P, 32);
-
-#if 0
-  outpic.data[0]=(unsigned char *)malloc(size*3/2); /* YUV 420 Planar */
-  outpic.data[1]=outpic.data[0]+size;
-  outpic.data[2]=outpic.data[1]+size/4;
-  outpic.data[3]=NULL;
-  outpic.linesize[0]=width;
-  outpic.linesize[1]=outpic.linesize[2]=width/2;
-  outpic.linesize[3]=0;
-#endif
-  
-#if 1
   av_image_alloc( &inpic.data, &inpic.linesize, width, height, AV_PIX_FMT_RGB24, 32);
-#else
-  inpic.data[0]=(unsigned char *)malloc(size*3); /* RGB24 packed in 1 plane */
-  inpic.data[1]=inpic.data[2]=inpic.data[3]=NULL;
-  inpic.linesize[0]=width*3;
-  inpic.linesize[1]=inpic.linesize[2]=inpic.linesize[3]=0;
-#endif
 
-  video_outf = fopen("video.outf","wb");
+  char fname[32];
+  static short file_count = 0;
+  sprintf(fname, "video%d.mpg", file_count++);  //open a new file everytime video changes
+  video_outf = fopen(fname,"wb");
   if (video_outf == NULL)
   {
     printf ("failed to open output video file\n");
@@ -107,17 +81,7 @@ void init_dumper( int width, int height )
   pic->format = avctx->pix_fmt;
   pic->width = avctx->width;
   pic->height = avctx->height;
-
-#if 0
-  ret = av_frame_get_buffer(pic, 32);
-  if (ret)
-    {
-      printf("could not allocate a frame buffer.\n");
-      exit( 1 );
-    }
-#endif
   
-#if 1
   pic->data[0]=outpic.data[0];  /* Points to data portion of outpic     */
   pic->data[1]=outpic.data[1];  /* Since encode_video takes an AVFrame, */
   pic->data[2]=outpic.data[2];  /* and img_convert takes an AVPicture   */
@@ -127,30 +91,19 @@ void init_dumper( int width, int height )
   pic->linesize[1]=outpic.linesize[1];
   pic->linesize[2]=outpic.linesize[2];
   pic->linesize[3]=outpic.linesize[3];
-#endif
 
 }
 
 void frame_dump ( struct mame_bitmap * bitmap )
 {
-  static unsigned int *dumpbig = NULL;
   unsigned char *dumpd;
   int y;
   int xoff, yoff, xsize, ysize;
   int outsz;
-  static int framecnt=0;
-  static unsigned char * myoutframe;
 
   framecnt++;
   if ((framecnt % frame_halver) != 0)
     return; // skip this frame
-
-#if 0
-  xoff = Machine->visible_area.min_x;
-  yoff = Machine->visible_area.min_y;
-  xsize= Machine->visible_area.max_x-xoff+1;
-  ysize = Machine->visible_area.max_y-yoff+1;
-#endif
 
   //printf("w=%d h=%d  rowpixels=%d  rowbytes=%d\n", bitmap->width, bitmap->height, bitmap->rowpixels, bitmap->rowbytes);
 
@@ -180,66 +133,22 @@ void frame_dump ( struct mame_bitmap * bitmap )
 #undef DEST_PIXEL
 #undef INDIRECT
 
-	/* Now make some corrections. */
+	// Seems that the bitmap data needs to be shifted
 	for (y=0; y < ysize; y++)
-   {
-   	 int offs = bitmap->width*(y+yoff)*4;
-#if 0
-     int x;
-
-     for(x=0; x < xsize; x++)
-	   {
-	   	 unsigned char c;
-       c = dumpd[offs+x*3+2];
-       dumpd[offs+x*3+2] = dumpd[offs+x*3];
-       dumpd[offs+x*3] = c;
-	   }
-#endif
-
-		memcpy( &myoutframe[xsize*y*3], &dumpd[offs+3*xoff], xsize*3 );
+  {
+    int offs = bitmap->width*(y+yoff)*4;
+    memcpy( &myoutframe[xsize*y*3], &dumpd[offs+3*xoff], xsize*3 );
 	}
 
-	/* dumpd now contains a nice RGB (or somethiing) frame.. */
-  //inpic.data[0] = myoutframe;
 
-  //img_convert(&outpic, AV_PIX_FMT_YUV420P, &inpic, AV_PIX_FMT_RGB24, xsize, ysize); 
   avpicture_fill(&inpic, myoutframe, AV_PIX_FMT_BGR24, xsize, ysize);
-  //avpicture_fill(&inpic, dumpbig, AV_PIX_FMT_BGR24, xsize, ysize);
-
+  // Convert RGB to YUV
   sws_scale(ctx, inpic.data, inpic.linesize, 0, ysize, outpic.data, outpic.linesize); 
   
   av_frame_make_writable(pic);
 
   pic->pts = frame_count++;
-#if 0
-  memcpy(pic->data[0], outpic.data[0], pic->linesize[0] * pic->height);
-  memcpy(pic->data[1], outpic.data[1], pic->linesize[1] * pic->height / 2);
-  memcpy(pic->data[2], outpic.data[2], pic->linesize[2] * pic->height / 2);
-#endif
 
-#if 0
-  int ret = avcodec_send_frame(avctx, pic);
-  if (ret < 0)
-  {
-    fprintf(stderr, "Error sending frame for encoding.\n");
-    exit(1);
-  }
-
-
-  while (ret >= 0) 
-  {
-    ret = avcodec_receive_packet(avctx, avpkt);
-    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
-        return;
-    else if (ret < 0) {
-        fprintf(stderr, "error during encoding\n");
-        exit(1);
-    }
-    printf("encoded frame %3"PRId64" (size=%5d)\n", avpkt->pts, avpkt->size);
-    fwrite(avpkt->data, 1, avpkt->size, video_outf);
-    av_packet_unref(avpkt);
-  }
-#else
   avpkt->data = NULL;
   avpkt->size = 0;
   av_init_packet(avpkt);
@@ -257,7 +166,6 @@ void frame_dump ( struct mame_bitmap * bitmap )
     fwrite(avpkt->data, 1, avpkt->size, video_outf);
     av_packet_unref(avpkt);
   }
-#endif
 }
 
 
@@ -272,13 +180,18 @@ void done_dumper()
   {
      fwrite("\0x00\0x00\0x01\0xb7", 1, 4, video_outf); // mpeg end sequence..
      fclose(video_outf);
-      video_outf = NULL;
+     video_outf = NULL;
   }
 
   avcodec_free_context(&avctx);
   sws_freeContext(ctx);
   av_freep(&pic);
   av_freep(&avpkt);
+
+  free(dumpbig);
+  free(myoutframe);
+  dumpbig = NULL;
+  myoutframe = NULL;
 }
 
 

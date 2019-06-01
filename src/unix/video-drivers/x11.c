@@ -123,7 +123,7 @@ int sysdep_display_16bpp_capable(void)
 {
 	if (x11_video_mode >= X11_MODE_COUNT)
 	{
-		fprintf (stderr_file,
+		fprintf (stderr,
 				"X11-mode %d does not exist, falling back to normal window code\n",
 				x11_video_mode);
 		x11_video_mode = X11_WINDOW;
@@ -145,13 +145,17 @@ int sysdep_display_16bpp_capable(void)
    mouse and keyboard can't be setup before the display has. */
 int sysdep_create_display (int depth)
 {
+  printf("sysdep_create_display: %d x %d\n", visual_width, visual_height);
+#ifdef AVICAPTURE
+  init_dumper(visual_width, visual_height);
+#endif
 	return (*x_func[x11_video_mode].create_display)(depth);
 }
 
 void sysdep_display_close(void)
 {
 #ifdef AVICAPTURE
-	/// done_dumper ();
+	done_dumper ();
 #endif
 	(*x_func[x11_video_mode].close_display)();
 }
@@ -210,14 +214,15 @@ int sysdep_display_set_pen (int pen, unsigned char red, unsigned char green,
 
 void sysdep_update_display (struct mame_bitmap *bitmap)
 {
-	int new_video_mode = x11_video_mode;
-	int current_palette_normal = (current_palette == normal_palette);
-
 	int bitmap_depth = bitmap->depth;
 	if (bitmap_depth == 15)
 	{
 		bitmap_depth = 16;
 	}
+
+#ifdef X11_MODE_SWITCHING  // Disable broken code -boilerbots
+	int new_video_mode = x11_video_mode;
+	int current_palette_normal = (current_palette == normal_palette);
 
 	if (keyboard_pressed (KEYCODE_LALT))
 	{
@@ -253,16 +258,22 @@ void sysdep_update_display (struct mame_bitmap *bitmap)
 					"   Trying again with the old x11-mode\n");
 			(*x_func[x11_video_mode].close_display)();
 			if ((*x_func[old_video_mode].create_display)(bitmap_depth) != OSD_OK)
-				goto barf;
+      {
+				printf("barf1\n"); goto barf;
+      }
 			else
 				x11_video_mode = old_video_mode;
 		}
 
 		if (sysdep_palette_change_display(&normal_palette))
-			goto barf;
+    {
+			printf("barf2\n"); goto barf;
+    }
 
 		if (debug_palette && sysdep_palette_change_display(&debug_palette))
-			goto barf;
+    {
+			printf("barf3\n"); goto barf;
+    }
 
 		if (current_palette_normal)
 			current_palette = normal_palette;
@@ -270,7 +281,9 @@ void sysdep_update_display (struct mame_bitmap *bitmap)
 			current_palette = debug_palette;
 
 		if (sysdep_display_alloc_palette(video_colors_used))
-			goto barf;
+    {
+			printf("barf4\n"); goto barf;
+    }
 
 		/* Force the palette lookup table to be updated.  This is necessary 
 		 * because switching to/from fullscreen mode could cause the screen 
@@ -288,17 +301,10 @@ void sysdep_update_display (struct mame_bitmap *bitmap)
 		/* Re-enable sound */
 		osd_sound_enable( 1 );
 	}
+#endif
 
 #ifdef AVICAPTURE
-   {
-     static int inited=0;
-     if (!inited)
-     {
-	     inited=1;
-        init_dumper( visual_width, visual_height );
-     }
-     frame_dump( bitmap );
-   }
+   frame_dump( bitmap );
    sched_yield();
 #endif
 	(*x_func[x11_video_mode].update_display) (bitmap);
