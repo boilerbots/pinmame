@@ -36,7 +36,7 @@ void init_dumper( int width, int height )
   avcodec_register_all();
   //av_log_set_level (99);
 
-  avc = avcodec_find_encoder( AV_CODEC_ID_MPEG1VIDEO );
+  avc = avcodec_find_encoder( AV_CODEC_ID_MPEG2VIDEO );
   if (avc == NULL)
   {
   	  printf ("cannot find MPEG encoder\n");
@@ -138,8 +138,8 @@ void frame_dump ( struct mame_bitmap * bitmap )
 
   //printf("w=%d h=%d  rowpixels=%d  rowbytes=%d\n", bitmap->width, bitmap->height, bitmap->rowpixels, bitmap->rowbytes);
 
-  xsize = visual_width;
-  ysize = visual_height;
+  xsize = avctx->width;
+  ysize = avctx->height;
   xoff=0;
   yoff=0; 
 	if (!dumpbig)
@@ -190,9 +190,8 @@ void frame_dump ( struct mame_bitmap * bitmap )
   struct SwsContext *ctx;
   ctx = sws_getContext(xsize, ysize, AV_PIX_FMT_BGR24, xsize, ysize, AV_PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL);
   avpicture_fill(&inpic, myoutframe, AV_PIX_FMT_BGR24, xsize, ysize);
-  //avpicture_fill(&inpic, dumpbig, AV_PIX_FMT_RGB24, xsize, ysize);
+  //avpicture_fill(&inpic, dumpbig, AV_PIX_FMT_BGR24, xsize, ysize);
 
-  //av_image_fill_black(outpic.data, outpic.linesize, AV_PIX_FMT_YUV420P, AVCOL_RANGE_MPEG, xsize, ysize);
   sws_scale(ctx, inpic.data, inpic.linesize, 0, ysize, outpic.data, outpic.linesize); 
   
   av_frame_make_writable(pic);

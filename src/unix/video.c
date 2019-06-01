@@ -481,6 +481,7 @@ int osd_create_display(const struct osd_create_params *params,
 	}
 #endif
 	video_depth = (params->depth == 15) ? 16 : params->depth;
+  printf("visual_width=%d visual_height=%d video_depth=%d\n", visual_width, visual_height, video_depth);
 
 	if (!blit_swapxy)
 		aspect_ratio = (double)params->aspect_x 
