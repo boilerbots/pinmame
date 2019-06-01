@@ -21,6 +21,7 @@ const int BUFFSIZE=1000000;
 FILE * video_outf;
 AVCodec * avc;
 AVCodecContext * avctx;
+struct SwsContext *ctx;
 AVPicture inpic, outpic;
 char * output_buffer;
 AVFrame * pic;
@@ -44,7 +45,7 @@ void init_dumper( int width, int height )
   }
 
   avctx = avcodec_alloc_context3(avc);
-    
+  ctx = sws_getContext(width, height, AV_PIX_FMT_BGR24, width, height, AV_PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL);
 #if 1
   /* sample parameters */
   //avctx->me_method = ME_LOG;
@@ -72,7 +73,8 @@ void init_dumper( int width, int height )
   pic = av_frame_alloc();
   avpkt = av_packet_alloc();
   
-  output_buffer=(char *)malloc(BUFFSIZE); /* Find where this value comes from */
+  //avpkt->data=(char *)malloc(BUFFSIZE); /* Find where this value comes from */
+  //avpkt->size = BUFFSIZE;
   
   av_image_alloc( &outpic.data, &outpic.linesize, width, height, AV_PIX_FMT_YUV420P, 32);
 
@@ -106,13 +108,27 @@ void init_dumper( int width, int height )
   pic->width = avctx->width;
   pic->height = avctx->height;
 
+#if 0
   ret = av_frame_get_buffer(pic, 32);
   if (ret)
     {
       printf("could not allocate a frame buffer.\n");
       exit( 1 );
     }
+#endif
   
+#if 1
+  pic->data[0]=outpic.data[0];  /* Points to data portion of outpic     */
+  pic->data[1]=outpic.data[1];  /* Since encode_video takes an AVFrame, */
+  pic->data[2]=outpic.data[2];  /* and img_convert takes an AVPicture   */
+  pic->data[3]=outpic.data[3];
+  
+  pic->linesize[0]=outpic.linesize[0]; /* This doesn't change */
+  pic->linesize[1]=outpic.linesize[1];
+  pic->linesize[2]=outpic.linesize[2];
+  pic->linesize[3]=outpic.linesize[3];
+#endif
+
 }
 
 void frame_dump ( struct mame_bitmap * bitmap )
@@ -187,8 +203,6 @@ void frame_dump ( struct mame_bitmap * bitmap )
   //inpic.data[0] = myoutframe;
 
   //img_convert(&outpic, AV_PIX_FMT_YUV420P, &inpic, AV_PIX_FMT_RGB24, xsize, ysize); 
-  struct SwsContext *ctx;
-  ctx = sws_getContext(xsize, ysize, AV_PIX_FMT_BGR24, xsize, ysize, AV_PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL);
   avpicture_fill(&inpic, myoutframe, AV_PIX_FMT_BGR24, xsize, ysize);
   //avpicture_fill(&inpic, dumpbig, AV_PIX_FMT_BGR24, xsize, ysize);
 
@@ -197,21 +211,13 @@ void frame_dump ( struct mame_bitmap * bitmap )
   av_frame_make_writable(pic);
 
   pic->pts = frame_count++;
+#if 0
   memcpy(pic->data[0], outpic.data[0], pic->linesize[0] * pic->height);
   memcpy(pic->data[1], outpic.data[1], pic->linesize[1] * pic->height / 2);
   memcpy(pic->data[2], outpic.data[2], pic->linesize[2] * pic->height / 2);
-#if 0
-  pic->data[0]=outpic.data[0];  /* Points to data portion of outpic     */
-  pic->data[1]=outpic.data[1];  /* Since encode_video takes an AVFrame, */
-  pic->data[2]=outpic.data[2];  /* and img_convert takes an AVPicture   */
-  pic->data[3]=outpic.data[3];
-  
-  pic->linesize[0]=outpic.linesize[0]; /* This doesn't change */
-  pic->linesize[1]=outpic.linesize[1];
-  pic->linesize[2]=outpic.linesize[2];
-  pic->linesize[3]=outpic.linesize[3];
 #endif
 
+#if 0
   int ret = avcodec_send_frame(avctx, pic);
   if (ret < 0)
   {
@@ -233,9 +239,25 @@ void frame_dump ( struct mame_bitmap * bitmap )
     fwrite(avpkt->data, 1, avpkt->size, video_outf);
     av_packet_unref(avpkt);
   }
+#else
+  avpkt->data = NULL;
+  avpkt->size = 0;
+  av_init_packet(avpkt);
 
-  //outsz = avcodec_encode_video2 (avctx, &avpkt, pic, &got_pkt);
-  //fwrite(output_buffer, 1, got_pkt, video_outf);
+  int got_pkt;
+  int ret = avcodec_encode_video2 (avctx, avpkt, pic, &got_pkt);
+  if (ret < 0)
+  {
+    fprintf (stderr, "avcodec_encode_video2: FAILED error=%d\n", ret);
+    exit (1);
+  }
+  if (got_pkt > 0)
+  {
+    printf("encoded frame %3"PRId64" (size=%5d)\n", avpkt->pts, avpkt->size);
+    fwrite(avpkt->data, 1, avpkt->size, video_outf);
+    av_packet_unref(avpkt);
+  }
+#endif
 }
 
 
@@ -254,6 +276,7 @@ void done_dumper()
   }
 
   avcodec_free_context(&avctx);
+  sws_freeContext(ctx);
   av_freep(&pic);
   av_freep(&avpkt);
 }
