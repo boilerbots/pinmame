@@ -13,7 +13,7 @@ QUIET = 1
 CFLAGS.i386       = -DLSB_FIRST -DX86_ASM
 CFLAGS.i386_noasm = -DLSB_FIRST
 CFLAGS.mips       = -DALIGN_INTS -DALIGN_SHORTS -DSGI_FIX_MWA_NOP
-CFLAGS.arm        = -DALIGN_INTS -DALIGN_SHORTS 
+CFLAGS.arm        = -DLSB_FIRST -DALIGN_INTS -DALIGN_SHORTS 
 
 ##############################################################################
 # **** Display dependent settings.
