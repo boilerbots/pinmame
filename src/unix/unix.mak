@@ -2,8 +2,7 @@
 # None user configurable settings
 ##############################################################################
 
-# *** Comment this line to get verbose make output, for debugging build
-# problems
+# *** Comment this line to get verbose compiler make output
 QUIET = 1
 
 
