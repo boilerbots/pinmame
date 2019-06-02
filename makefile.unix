@@ -34,14 +34,7 @@
 
 # Uncomment one of these.
 TARGET = pinmame
-AVICAPTURE = 1
-# TARGET = mame
-# TARGET = mess
-# TARGET = neomame
-# TARGET = cpmame
-# TARGET = mmsnd
-# example for a tiny compile
-# TARGET = tiny
+#AVICAPTURE = 1
 
 
 ###########################################################################
@@ -266,80 +259,10 @@ CFLAGS += -pipe
   # CFLAGS += -march=athlon
   # CFLAGS += -march=athlon-tbird
 #### CFLAGS += -march=athlon-xp
-  CFLAGS += -march=athlon64
+  # CFLAGS += -march=athlon64
   # CFLAGS += -march=athlon-mp
   # CFLAGS += -march=athlon-4
 
-else
-ifeq ($(CC),icc)
-
-  # Optimizations for the Intel compiler.
-  CFLAGS    = -O3 -rcd -Xa -ipo -ipo_obj
-
-else
-ifeq ($(CC),sun-forte)
-  #
-  # sun-forte given above is just an artifice to get us into this section
-  CC = cc
-
-  # uncomment to set compiler defaults oriented for maximum performance
-  XOPT += -fast
-
-  # Choose one optimization level;
-  #XOPT += -xO0
-  #XOPT += -xO1
-  #XOPT += -xO2
-  #XOPT += -xO3
-  # -xO4 and above automatically inline
-  #XOPT += -xO4
-  XOPT += -xO5
-
-  # uncomment for code generation targeted to the local machine; this
-  # supplies -xarch, -xcpu, -xtarget.  It also seems to cause an annoying
-  # message related to code generated at -native being compatible with 
-  # older hardware, which apparently can't be disabled.  As an alternative,
-  # the particular -xtarget for your system could be specified; 
-  # -xtarget=ultra2/2300
-  XTARGET += -native 
-  #XTARGET += -xtarget=ultra2/2300
-
-  # uncomment to inline library math functions
-  EXTRA_OPTS += -xlibmil
-
-  ######################################################
-  # Additional options for parallelization optimizations
-  ######################################################
-  # uncomment for automatic parallelization (if your machine has > 1 cpu)
-  # Before starting xmame, be sure to set the env variable PARALLEL to the #
-  # of processors to use; PARALLEL=2 ./xmame.x11 
-  # xmame doesn't appear to like these at present
-  # XPARALLEL += -xparallel
-  # uncomment to have cc collapse various math expression sequences, possibly 
-  # affecting roundoffs.  Requires -xparallel
-  # EXTRA_OPTS += -xreduction
-
-  # Sparc only, uncomment to do loop restructuring optimizations
-  # and speculative prefetch for v8plusa and above
-  EXTRA_OPTS += -xdepend  -xsafe=mem
-
-  #################################################
-  # Additional options for glx builds
-  #################################################
-  #
-  # uncomment and modify as required if Mesa wants /lib/libCrun.so
-  # (libGLU dlopen() complains of missing name mangled symbols)
-  # GLCFLAGS += -DSUN_FORTE_DLOPEN_LIBCRUN='\"libCrun.so.1\"'
-
-  CFLAGS= $(XOPT) $(XTARGET) $(XPARALLEL) $(EXTRA_OPTS)
-  LDFLAGS=$(XOPT) $(XTARGET) $(XPARALLEL) $(EXTRA_OPTS)
-
-  # uncomment for silence...
-  CFLAGS += -erroff
-  # Tell xmame that we really are in fact elf.  If not supplied, SHARED_PREFIX 
-  # is set causing dlopen()'s to fail.
-  CFLAGS += -D__ELF__ 
-endif
-endif
 endif
 
 ###########################################################################
@@ -481,7 +404,7 @@ XMAMEROOT = $(HOME)/mame
 
 #MY_CPU = x86-64
 # i386, GNU asm
-MY_CPU = i386
+# MY_CPU = i386
 
 # i386, no asm -- needed for the Intel C++ compiler, which does not fully
 # understand gcc's inline assembly syntax, though you may still enable 
@@ -489,23 +412,8 @@ MY_CPU = i386
 # use this for BeOS.
 #MY_CPU = i386_noasm
 
-# IA64
-# MY_CPU = ia64
-
-# DEC Alpha
-# MY_CPU = alpha
-
-# Motorola M68K
-# MY_CPU = m68k
-
-# Generic RISC (PowerPC, SPARC, HPPA, IBM)
-# MY_CPU = risc
-
-# Generic RISC, LSB-first (RISC (Ultrix machines) & PlayStation2)
-# MY_CPU = risc_lsb
-
-# MIPS (generic RISC + SGI compiler bug workarounds)
 # MY_CPU = mips
+MY_CPU = arm
 
 
 ###########################################################################

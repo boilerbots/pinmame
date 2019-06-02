@@ -13,25 +13,8 @@ QUIET = 1
 #note : -D__CPU_$(MY_CPU) is added automaticly later on.
 CFLAGS.i386       = -DLSB_FIRST -DX86_ASM
 CFLAGS.i386_noasm = -DLSB_FIRST
-CFLAGS.ia64       = -DLSB_FIRST -DALIGN_INTS -DALIGN_SHORTS -D__LP64__
-CFLAGS.alpha      = -DLSB_FIRST -DALIGN_INTS -DALIGN_SHORTS -D__LP64__
-CFLAGS.m68k       = 
-CFLAGS.risc       = -DALIGN_INTS -DALIGN_SHORTS 
-CFLAGS.risc_lsb   = -DALIGN_INTS -DALIGN_SHORTS -DLSB_FIRST
 CFLAGS.mips       = -DALIGN_INTS -DALIGN_SHORTS -DSGI_FIX_MWA_NOP
-
-##############################################################################
-# **** Architecture dependent settings.
-##############################################################################
-LIBS.solaris       = -lnsl -lsocket
-LIBS.irix          = -laudio
-LIBS.irix_al       = -laudio
-LIBS.aix           = -lUMSobj
-LIBS.next	   = -framework SoundKit
-LIBS.macosx	   = -framework CoreAudio
-#LIBS.openbsd       = -lossaudio
-LIBS.nto	   = -lsocket -lasound
-LIBS.beos          = `$(SDL_CONFIG) --libs`
+CFLAGS.arm        = -DALIGN_INTS -DALIGN_SHORTS 
 
 ##############################################################################
 # **** Display dependent settings.
