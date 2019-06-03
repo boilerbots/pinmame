@@ -185,8 +185,8 @@ ifneq (,$(findstring gcc,$(CC)))
   # CFLAGS += -std=c89
 
   # Enable debugging (e.g., using gdb).
-CFLAGS += -g -ggdb
-CPPFLAGS += -g -ggdb
+#CFLAGS += -g -ggdb
+#CPPFLAGS += -g -ggdb
 
   #########################################################################
   # General optimizations
@@ -195,9 +195,9 @@ CPPFLAGS += -g -ggdb
   # Optimization level -- choose one of these.
   # Use -O1 if you suspect that -O2 is producing bad code; use -O3 for a 
   # possible speedup; use -Os for a smaller executable.
-#CFLAGS += -O2
+  # CFLAGS += -O2
   # CFLAGS += -O1
-  # CFLAGS += -O3
+CFLAGS += -O3
   # CFLAGS += -Os
 
   # This option should reduce compilation time and disk activity
@@ -219,7 +219,7 @@ CFLAGS += -pipe
   # Unroll loops for a possible speedup.  Beware that combining this with 
   # -O2 in gcc-3.0.x on x86 platforms miscompiles src/sndhrdw/williams.c, 
   # causing narc (and possibly other games) to segfault.
-#CFLAGS += -funroll-loops
+  # CFLAGS += -funroll-loops
 
   # Produce faster floating point code that isn't IEEE/ISO-compliant.
   # CFLAGS += -ffast-math
@@ -262,6 +262,10 @@ CFLAGS += -pipe
   # CFLAGS += -march=athlon64
   # CFLAGS += -march=athlon-mp
   # CFLAGS += -march=athlon-4
+
+  # For Raspberry Pi 3+
+CFLAGS += -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard -mlittle-endian 
+CFLAGS += -ffast-math -fomit-frame-pointer
 
 endif
 
@@ -506,7 +510,7 @@ ARCH  = linux
 SOUND_ALSA = 1
 # SOUND_ARTS_TEIRA = 1
 # SOUND_ARTS_SMOTEK = 1
-SOUND_SDL = 1
+# SOUND_SDL = 1
 # SOUND_WAVEOUT = 1
 
 
