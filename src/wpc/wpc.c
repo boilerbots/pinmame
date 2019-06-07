@@ -1141,22 +1141,6 @@ static MACHINE_INIT(wpc) {
     *(memory_region(WPC_CPUREGION) + 0xffec) = 0x00;
     *(memory_region(WPC_CPUREGION) + 0xffed) = 0xff;
   }
-
-  memset(&matrix_options, 0, sizeof(matrix_options));
-  matrix_options.hardware_mapping = "regular";
-  matrix_options.rows = 32;
-  matrix_options.cols = 128;
-  matrix_options.chain_length = 1;
-  matrix_options.parallel = 1;
-  matrix_options.led_rgb_sequence = "RBG";
-
-  matrix = led_matrix_create_from_options(&matrix_options, NULL, NULL);
-  if (matrix == NULL)
-    return 1;
-
-  offscreen_canvas = led_matrix_create_offscreen_canvas(matrix);
-  led_canvas_get_size(offscreen_canvas, 128, 32);
-  
 }
 
 static MACHINE_STOP(wpc) {
@@ -1269,7 +1253,7 @@ PINMAME_VIDEO_UPDATE(wpcdmd_update) {
     {
       for (int xx = 0; xx < 129; xx++)
       {
-        UINT8 pixel = dotCol[yy][xx];
+        UINT8 pixel = ((float)dotCol[yy+1][xx] / 3.0) * 255;
         //printf("%u", pixel);
         led_canvas_set_pixel(offscreen_canvas, xx, yy, pixel, 0, 0);  // only R no G or B
       }
@@ -1277,6 +1261,7 @@ PINMAME_VIDEO_UPDATE(wpcdmd_update) {
     }
     //printf("frame=%d\n", dmdlocals.nextDMDFrame);
   }
+  offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
 #endif
 
   //video_update_core_dmd(bitmap, cliprect, dotCol, layout);

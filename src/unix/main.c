@@ -14,6 +14,11 @@ extern int lisy_set_gamename( char *arg_from_main, char *lisy_gamename);
 #include "lisy/lisyversion.h"
 #endif
 
+#include "led-matrix-c.h"
+extern struct RGBLedMatrixOptions matrix_options;
+extern struct RGBLedMatrix  *matrix;
+extern struct LedCanvas *offscreen_canvas;
+
 /* From video.c. */
 void osd_video_initpre();
 
@@ -46,6 +51,30 @@ int main(int argc, char **argv)
 {
 	int res, res2;
 
+#if 1
+  memset(&matrix_options, 0, sizeof(matrix_options));
+  matrix_options.hardware_mapping = "regular";
+  matrix_options.rows = 32;
+  matrix_options.cols = 64;
+  matrix_options.chain_length = 2;
+  matrix_options.parallel = 1;
+  matrix_options.led_rgb_sequence = "RBG";
+
+  //matrix = led_matrix_create(32, 128, 1);
+  matrix = led_matrix_create_from_options(&matrix_options, &argc, &argv);
+  if (matrix == NULL)
+    return 1;
+
+  offscreen_canvas = led_matrix_create_offscreen_canvas(matrix);
+  if (offscreen_canvas == NULL)
+  {
+    fprintf(stderr, "Failed to allocate LED canvas\n");
+    exit(1);
+  }
+  int width, height;
+  led_canvas_get_size(offscreen_canvas, &width, &height);
+  printf("DMD width=%d height=%d\n", width, height);
+#endif
 #ifdef __QNXNTO__
 	printf("info: Trying to enable swapfile.... ");
 	munlockall();

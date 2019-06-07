@@ -116,7 +116,7 @@ CFLAGS =
 # this section.
 ###########################################################################
 
-CFLAGS = -fomit-frame-pointer -Wall -Wno-unused
+#CFLAGS = -fomit-frame-pointer -Wall -Wno-unused
 
 # gcc on x86 with some optimizations
 # CFLAGS = -O2 -Wall -Wno-unused -mcpu=i686 -fomit-frame-pointer \
@@ -185,8 +185,8 @@ ifneq (,$(findstring gcc,$(CC)))
   # CFLAGS += -std=c89
 
   # Enable debugging (e.g., using gdb).
-#CFLAGS += -g -ggdb
-#CPPFLAGS += -g -ggdb
+CFLAGS += -g -ggdb
+CPPFLAGS += -g -ggdb
 
   #########################################################################
   # General optimizations
@@ -197,7 +197,7 @@ ifneq (,$(findstring gcc,$(CC)))
   # possible speedup; use -Os for a smaller executable.
   # CFLAGS += -O2
   # CFLAGS += -O1
-CFLAGS += -O3
+#CFLAGS += -O3
   # CFLAGS += -Os
 
   # This option should reduce compilation time and disk activity

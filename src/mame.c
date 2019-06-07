@@ -549,7 +549,7 @@ void run_machine_core(void)
 	{
 #ifndef VPINMAME
 		/* show info about incorrect behaviour (wrong colors etc.) */
-		if (showgamewarnings(artwork_get_ui_bitmap()) == 0)
+		//if (showgamewarnings(artwork_get_ui_bitmap()) == 0)
 #endif /* VPINMAME */
 		{
 			/* show info about the game */
@@ -558,7 +558,7 @@ void run_machine_core(void)
 				init_user_interface();
 
 				/* enable artwork now */
-				artwork_enable(1);
+				//artwork_enable(1);
 
 				/* disable cheat if no roms */
 				if (!gamedrv->rom)
@@ -726,6 +726,7 @@ static int vh_open(void)
 	artcallbacks = &mame_artwork_callbacks;
 #endif
 
+#if 0
 	/* initialize the display through the artwork (and eventually the OSD) layer */
 	if (artwork_create_display(&params, direct_rgb_components, artcallbacks))
 		goto cant_create_display;
@@ -733,6 +734,7 @@ static int vh_open(void)
 	/* the create display process may update the vector width/height, so recompute */
 	if (Machine->drv->video_attributes & VIDEO_TYPE_VECTOR)
 		scale_vectorgames(options.vector_width, options.vector_height, &bmwidth, &bmheight);
+#endif
 
 	/* now allocate the screen bitmap */
 	Machine->scrbitmap = auto_bitmap_alloc_depth(bmwidth, bmheight, Machine->color_depth);
@@ -1269,7 +1271,7 @@ void update_video_and_audio(void)
 	palette_update_display(&current_display);
 
 	/* render */
-	artwork_update_video_and_audio(&current_display);
+	//artwork_update_video_and_audio(&current_display);
 
 	/* update FPS */
 	recompute_fps(skipped_it);
@@ -1336,7 +1338,7 @@ static void recompute_fps(int skipped_it)
 int updatescreen(void)
 {
 	/* update sound */
-	sound_update();
+	//sound_update();
 
 	/* if we're not skipping this frame, draw the screen */
 	if (osd_skip_this_frame() == 0)
