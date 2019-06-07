@@ -301,13 +301,19 @@ MY_OBJDIRS = $(CORE_OBJDIRS) $(sort $(OBJDIRS))
 ##############################################################################
 # Begin of the real makefile.
 ##############################################################################
-$(NAME).$(DISPLAY_METHOD): $(OBJS) $(PROCOBJS) $(LISYOBJS)
+$(NAME).$(DISPLAY_METHOD): $(OBJS) $(PROCOBJS) $(LISYOBJS) 
 	$(CC_COMMENT) @echo 'Linking $@ ...'
-	$(CC_COMPILE) $(LD) $(LDFLAGS) -o $@ $(OBJS) $(PROCOBJS) $(LISYOBJS) $(MY_LIBS) 
+	$(CC_COMPILE) $(LD) $(LDFLAGS) -o $@  $(OBJS) $(PROCOBJS) $(LISYOBJS) $(MY_LIBS)
 
 tools: $(ZLIB) $(OBJDIRS) $(TOOLS)
 
 objdirs: $(MY_OBJDIRS)
+
+#rgbdmd: adafruit.o
+
+LDFLAGS   += -L$(HOME)/projects/rpi-rgb-led-matrix/lib
+MY_LIBS += -lrgbmatrix -lpthread
+MY_CFLAGS += -I$(HOME)/projects/rpi-rgb-led-matrix/include
 
 $(MY_OBJDIRS):
 	-mkdir $@
@@ -323,6 +329,10 @@ romcmp: $(OBJ)/romcmp.o $(OBJ)/unzip.o
 hdcomp: $(OBJ)/hdcomp.o $(OBJ)/harddisk.o $(OBJ)/md5.o
 	$(CC_COMMENT) @echo Linking $@...
 	$(CC_COMMENT) $(LD) $(LDFLAGS) -o $@ $^ -lz
+
+adafruit.o: Adafruit-GFX-Library/Adafruit_GFX.cpp
+	$(CC_COMMENT) @echo Compiling Adafruit-GFX-Library $@
+	$(CC) $(CFLAGS) -o $(OBJ)/$@ -c $< 
 
 osdepend:
 	$(CC_COMMENT) @echo 'Compiling in the unix directory...'

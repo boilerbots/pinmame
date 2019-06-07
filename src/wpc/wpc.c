@@ -13,6 +13,7 @@
 #ifdef PROC_SUPPORT
 #include "p-roc/p-roc.h"
 #endif
+#include "led-matrix-c.h"
 
 #define PRINT_GI_DATA      0 /* printf the GI Data for debugging purposes   */
 #define DEBUG_GI           0 /* debug GI code - more printf stuff basically */
@@ -69,6 +70,9 @@ static MACHINE_STOP(wpc);
 static NVRAM_HANDLER(wpc);
 static SWITCH_UPDATE(wpc);
 
+struct RGBLedMatrixOptions matrix_options;
+struct RGBLedMatrix  *matrix;
+struct LedCanvas *offscreen_canvas;
 /*------------------------
 /  DMD display registers
 /-------------------------*/
@@ -1137,6 +1141,22 @@ static MACHINE_INIT(wpc) {
     *(memory_region(WPC_CPUREGION) + 0xffec) = 0x00;
     *(memory_region(WPC_CPUREGION) + 0xffed) = 0xff;
   }
+
+  memset(&matrix_options, 0, sizeof(matrix_options));
+  matrix_options.hardware_mapping = "regular";
+  matrix_options.rows = 32;
+  matrix_options.cols = 128;
+  matrix_options.chain_length = 1;
+  matrix_options.parallel = 1;
+  matrix_options.led_rgb_sequence = "RBG";
+
+  matrix = led_matrix_create_from_options(&matrix_options, NULL, NULL);
+  if (matrix == NULL)
+    return 1;
+
+  offscreen_canvas = led_matrix_create_offscreen_canvas(matrix);
+  led_canvas_get_size(offscreen_canvas, 128, 32);
+  
 }
 
 static MACHINE_STOP(wpc) {
@@ -1203,7 +1223,6 @@ static VIDEO_START(wpc_dmd) {
   UINT8 *RAM = memory_region(WPC_DMDREGION);
   int ii;
 
-printf("map the DMD memory\n");
   for (ii = 0; ii < DMD_FRAMES; ii++)
     dmdlocals.DMDFrames[ii] = RAM;
   dmdlocals.nextDMDFrame = 0;
@@ -1214,22 +1233,6 @@ printf("map the DMD memory\n");
 PINMAME_VIDEO_UPDATE(wpcdmd_update) {
   tDMDDot dotCol;
   int ii,jj,kk;
-
-#if 0
-  //if (dmdlocals.nextDMDFrame == 0)
-  {
-    for (int yy = 0; yy < 33; yy++)
-    {
-      for (int xx = 0; xx < 129; xx++)
-      {
-        UINT8 pixel = dotCol[yy][xx];
-        printf("%u", pixel);
-      }
-      printf("\n");
-    }
-    printf("frame=%d\n", dmdlocals.nextDMDFrame);
-  }
-#endif
 
   /* Create a temporary buffer with all pixels */
   for (kk = 0, ii = 1; ii < 33; ii++) 
@@ -1259,6 +1262,23 @@ PINMAME_VIDEO_UPDATE(wpcdmd_update) {
     }
     *column = 0; /* to simplify antialiasing */
   }
-  video_update_core_dmd(bitmap, cliprect, dotCol, layout);
+#if 1
+  //if (dmdlocals.nextDMDFrame == 0)
+  {
+    for (int yy = 0; yy < 33; yy++)
+    {
+      for (int xx = 0; xx < 129; xx++)
+      {
+        UINT8 pixel = dotCol[yy][xx];
+        //printf("%u", pixel);
+        led_canvas_set_pixel(offscreen_canvas, xx, yy, pixel, 0, 0);  // only R no G or B
+      }
+      //printf("\n");
+    }
+    //printf("frame=%d\n", dmdlocals.nextDMDFrame);
+  }
+#endif
+
+  //video_update_core_dmd(bitmap, cliprect, dotCol, layout);
   return 0;
 }

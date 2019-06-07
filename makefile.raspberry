@@ -98,6 +98,10 @@ CC    = gcc
 
 CPP    = g++
 
+# Uncomment for Sun Forte 7 and above C/C++ compiler, see below for
+# additional optimizations.
+# CC = sun-forte
+
 ###########################################################################
 # Reset CFLAGS
 ###########################################################################
@@ -112,13 +116,51 @@ CFLAGS =
 # this section.
 ###########################################################################
 
-#CFLAGS = -fomit-frame-pointer -Wall -Wno-unused
+CFLAGS = -fomit-frame-pointer -Wall -Wno-unused
 
 # gcc on x86 with some optimizations
 # CFLAGS = -O2 -Wall -Wno-unused -mcpu=i686 -fomit-frame-pointer \
 #  -fstrict-aliasing -fstrength-reduce -ffast-math
 
+# gcc on Linux/PowerPC
+# CFLAGS = -O2 -Wall -Wno-unused -funroll-loops -fstrength-reduce \
+#  -fomit-frame-pointer -ffast-math -fsigned-char
+
+# gcc on OpenStep/Intel
+# CFLAGS = -O2 -Wall -Wno-unused -finline-functions -ffast-math \
+#  -fstrength-reduce -traditional-cpp
+
+# gcc on OpenStep/PPC or Mac OS X
+# CFLAGS = -O2 -Wall  -Wno-unused -funroll-loops -traditional-cpp \
+#  -fstrength-reduce -fomit-frame-pointer -ffast-math -fsigned-char
+
+# IRIX MIPSpro with really serious optimization for R10K O2
+# CFLAGS = -fullwarn -n32 -mips4 -Ofast=ip32_10k -TARG:platform=ip32_10k \
+#  -OPT:Olimit=0 -IPA
+
+# IRIX with more general optimization for R5+K MIPS machines
+# CFLAGS = -fullwarn -n32 -mips4 -Ofast -OPT:Olimit=0 -IPA
+
+# IRIX with R4K MIPS chips (older Indys, Indigo2s, etc).
+# CFLAGS = -fullwarn -n32 -mips3 -Ofast -OPT:Olimit=0 -IPA
+
+# PlayStation2 Linux
+# CFLAGS = -O2 -mcpu=r5900 -Wall -Wno-unused -fsingle-precision-constant \
+#  -fstrength-reduce -fomit-frame-pointer -ffast-math -fsigned-char -pipe \
+#  -malign-loops=2 -malign-jumps=2 -funroll-loops
+
 ifneq (,$(findstring gcc,$(CC)))
+
+  #########################################################################
+  # Special cases
+  #########################################################################
+
+  # Uncomment for Linux on a PowerPC system.
+  # CFLAGS += -fsigned-char
+
+  # Uncomment for OpenStep and Mac OS X. 
+  # CFLAGS += -traditional-cpp
+
 
   #########################################################################
   # Warnings
@@ -143,8 +185,8 @@ ifneq (,$(findstring gcc,$(CC)))
   # CFLAGS += -std=c89
 
   # Enable debugging (e.g., using gdb).
-CFLAGS += -g -ggdb
-CPPFLAGS += -g -ggdb
+#CFLAGS += -g -ggdb
+#CPPFLAGS += -g -ggdb
 
   #########################################################################
   # General optimizations
@@ -155,7 +197,7 @@ CPPFLAGS += -g -ggdb
   # possible speedup; use -Os for a smaller executable.
   # CFLAGS += -O2
   # CFLAGS += -O1
-#CFLAGS += -O3
+CFLAGS += -O3
   # CFLAGS += -Os
 
   # This option should reduce compilation time and disk activity
@@ -166,8 +208,64 @@ CFLAGS += -pipe
   # can produce invalid code for x86 with this enabled.
   # CFLAGS += -fomit-frame-pointer
 
+  # Use with gcc-2.95.1 and above for a nice speedup.  For gcc-3.0 and
+  # above, this is automatically turned on by -O2 and above.
+  # CFLAGS += -fstrict-aliasing
+
+  # Use with egcs-1.1.x and gcc-2.95; otherwise, xmame compilation will 
+  # break.
+  # CFLAGS += -fno-strict-aliasing
+ 
+  # Unroll loops for a possible speedup.  Beware that combining this with 
+  # -O2 in gcc-3.0.x on x86 platforms miscompiles src/sndhrdw/williams.c, 
+  # causing narc (and possibly other games) to segfault.
+  # CFLAGS += -funroll-loops
+
   # Produce faster floating point code that isn't IEEE/ISO-compliant.
   # CFLAGS += -ffast-math
+
+  # Strength reduction and elimination of iteration variables.
+  # CFLAGS += -fstrength-reduce
+
+  # Enable minor optimizations that are relatively expensive.
+  # CFLAGS += -fexpensive-optimizations
+
+
+  #########################################################################
+  # Architecture-specific optimizations
+  #########################################################################
+  
+  # Note that -march may produce an executable that won't run on lesser 
+  # CPUs.  If you're aiming for portability across an entire architecture, 
+  # use -mcpu instead.  For example, -mcpu=pentiumpro will produce an 
+  # executable that (in theory) should be optimized for a PentiumPro 
+  # system, but it will still run on a 386.
+
+  # Valid x86 options that work with any version of gcc.
+  # CFLAGS += -march=i386
+  # CFLAGS += -march=i486
+  # CFLAGS += -march=i586
+  # CFLAGS += -march=i686
+  # CFLAGS += -march=pentium
+  # CFLAGS += -march=pentiumpro
+
+  # Valid x86 options that work only with newer versions of gcc.
+  # CFLAGS += -march=pentium-mmx
+  # CFLAGS += -march=pentium3
+  # CFLAGS += -march=pentium4
+  # CFLAGS += -march=k6
+  # CFLAGS += -march=k6-2
+  # CFLAGS += -march=k6-3
+  # CFLAGS += -march=athlon
+  # CFLAGS += -march=athlon-tbird
+#### CFLAGS += -march=athlon-xp
+  # CFLAGS += -march=athlon64
+  # CFLAGS += -march=athlon-mp
+  # CFLAGS += -march=athlon-4
+
+  # For Raspberry Pi 3+
+CFLAGS += -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard -mlittle-endian 
+CFLAGS += -ffast-math -fomit-frame-pointer
 
 endif
 
@@ -195,6 +293,28 @@ IL	= '-DINLINE=static __inline__'
 #LD	= $(CC) -Wl,-s
 #LD	= g++ -Wl,-s
 LD	= g++
+
+# For the Intel C++ Compiler -- expect large link time due to -ipo 
+# optimization.
+# LD	= $(CC) -Wl,-s -ipo -ipo_obj
+
+# To profile with gcc and gprof.
+# LD	= $(CC) -pg
+
+# No profiling (less strace output), but include debug info.
+# LD	= $(CC)
+
+# For debugging only.  This only works with GNU binutils!!
+# LD	= $(CC) -Wl,-warn-common
+
+# For IRIX R5+K MIPSpro, optimization at link time.  This takes nearly a 
+# gig of memory!!
+# LD    = $(CC) -fullwarn -n32 -mips4 -IPA
+
+# For IRIX R4K MIPSpro, optimization at link time.  This takes nearly a gig
+# of memory!!
+# LD  = $(CC) -fullwarn -n32 -mips3 -IP
+
 
 ###########################################################################
 # Math library and ranlib
@@ -286,14 +406,18 @@ XMAMEROOT = $(HOME)/mame
 # Architecture; choose your CPU (only one!!) 
 ###########################################################################
 
+#MY_CPU = x86-64
 # i386, GNU asm
-MY_CPU = i386
+# MY_CPU = i386
 
 # i386, no asm -- needed for the Intel C++ compiler, which does not fully
 # understand gcc's inline assembly syntax, though you may still enable 
 # X86_ASM_68000, etc., which are assembled by NASM.  You may also need to 
 # use this for BeOS.
 #MY_CPU = i386_noasm
+
+# MY_CPU = mips
+MY_CPU = arm
 
 
 ###########################################################################
@@ -302,6 +426,49 @@ MY_CPU = i386
 
 # Linux 
 ARCH  = linux
+
+# FreeBSD
+# ARCH  = freebsd
+
+# NetBSD
+# ARCH  = netbsd
+
+# OpenBSD
+# ARCH = openbsd
+
+# Solaris/SunOS
+# ARCH  = solaris
+# For Solaris, add paths where other stuff is; libjpeg and so on...
+# CFLAGS += -I/usr/local/include -I/usr/sfw/include 
+# LDFLAGS += -L/usr/local/lib -L/usr/sfw/lib
+
+# QNX Neutrino (QNX4/QNX6)
+# ARCH = nto
+
+# OpenStep on NeXT systems
+# ARCH  = next
+
+# OpenStep on Apple systems (Cocoa)
+# ARCH  = macosx
+
+# IRIX (with sound requires the dmedia package) (*)
+# ARCH  = irix
+
+# IRIX (with sound using the new al package) (*)
+# ARCH  = irix_al
+
+# AIX (with sound, you'll need the UMS and SOM lpp's installed (under 
+# AIX4))
+# ARCH  = aix
+
+# BeOS on Intel
+# ARCH = beos
+
+# generic UNIX, no sound
+# ARCH  = generic
+
+# (*) For IRIX 6.5 or higher add -DHAVE_SNPRINTF to CFLAGS.irix(_al) in
+# src/unix/Makefile
 
 
 ###########################################################################
@@ -355,7 +522,8 @@ SOUND_ALSA = 1
 # use SDL.
 
 # X11
-DISPLAY_METHOD = x11
+#DISPLAY_METHOD = x11
+DISPLAY_METHOD = dmd
 
 # SDL library 
 # DISPLAY_METHOD = SDL
