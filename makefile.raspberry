@@ -185,8 +185,8 @@ ifneq (,$(findstring gcc,$(CC)))
   # CFLAGS += -std=c89
 
   # Enable debugging (e.g., using gdb).
-CFLAGS += -g -ggdb
-CPPFLAGS += -g -ggdb
+#CFLAGS += -g -ggdb
+#CPPFLAGS += -g -ggdb
 
   #########################################################################
   # General optimizations
@@ -197,7 +197,7 @@ CPPFLAGS += -g -ggdb
   # possible speedup; use -Os for a smaller executable.
   # CFLAGS += -O2
   # CFLAGS += -O1
-#CFLAGS += -O3
+CFLAGS += -O3
   # CFLAGS += -Os
 
   # This option should reduce compilation time and disk activity
@@ -265,7 +265,7 @@ CFLAGS += -pipe
 
   # For Raspberry Pi 3+
 CFLAGS += -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard -mlittle-endian 
-CFLAGS += -ffast-math -fomit-frame-pointer
+#CFLAGS += -ffast-math -fomit-frame-pointer
 
 endif
 
@@ -482,7 +482,7 @@ ARCH  = linux
 # JOY_X11 = 1
 
 # On x86-based OSes, if supported, you can use standard joystick driver.
-# JOY_I386 = 1
+JOY_I386 = 1
 
 # Linux FM-TOWNS game pad joystick emulation support.  Thanks to Osamu 
 # Kurati.

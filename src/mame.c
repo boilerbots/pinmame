@@ -1277,6 +1277,7 @@ void update_video_and_audio(void)
 	if (sound_stream && sound_enabled)
 		sound_stream_update(sound_stream);
 
+  osd_poll_joysticks();
 
 	/* update FPS */
 	recompute_fps(skipped_it);

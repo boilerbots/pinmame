@@ -304,7 +304,7 @@ MY_OBJDIRS = $(CORE_OBJDIRS) $(sort $(OBJDIRS))
 $(NAME).$(DISPLAY_METHOD): $(OBJS) $(PROCOBJS) $(LISYOBJS) 
 	$(CC_COMMENT) @echo 'Linking $@ ...'
 	$(CC_COMPILE) $(LD) $(LDFLAGS) -o $@  $(OBJS) $(PROCOBJS) $(LISYOBJS) $(MY_LIBS)
-	sudo setcap 'cap_sys_nice=eip' $@
+	#sudo setcap 'cap_sys_nice=eip' $@
 
 tools: $(ZLIB) $(OBJDIRS) $(TOOLS)
 

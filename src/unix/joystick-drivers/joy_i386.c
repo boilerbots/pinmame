@@ -1,5 +1,6 @@
 #include "xmame.h"
 #include "devices.h"
+#include "keyboard.h"
 
 static char *joy_dev = NULL; /* name of joystick device prefix */
 
@@ -34,20 +35,33 @@ typedef struct joystick joy_struct;
 #include <linux/joystick.h>
 typedef struct JS_DATA_TYPE joy_struct;
 
-#ifdef JS_VERSION
 #define I386NEW_JOYSTICK 1
-#endif
 
 #else
 #error "i386 style joystick only supported under linux, openbsd, netbsd & freebsd. "
    "patches to support other arch's are welcome ;)"
 #endif
 
-/* #define JDEBUG */
+#define JDEBUG
 
 void joy_i386_poll(void);
 void joy_i386new_poll(void);
 static joy_struct my_joy_data;
+
+void process_button(int button, int value)
+{
+  struct xmame_keyboard_event event;
+
+  event.press = value;
+
+  switch (button)
+  {
+    case 0: event.scancode = KEY_SPACE; break;  // plunger
+    case 8: event.scancode = KEY_1; break;  // start
+    case 9: event.scancode = KEY_3; break;  // credit
+  }
+  xmame_keyboard_register_event(&event);
+}
 
 void joy_i386_init(void)
 {
@@ -76,7 +90,7 @@ void joy_i386_init(void)
       }
    }
 
-   fprintf (stderr_file, "I386 joystick interface initialization...\n");
+   fprintf (stdout, "I386 joystick interface initialization...\n");
    for (i = first_dev; i <= last_dev; i++)
    {
       sprintf (devname, "%s%d", joy_dev, i);
@@ -106,9 +120,9 @@ void joy_i386_init(void)
                      joy_data[i].num_buttons = JOY_BUTTONS;
                   if (joy_data[i].num_axis > JOY_AXIS)
                      joy_data[i].num_axis = JOY_AXIS;
-                  fprintf (stderr_file, "Joystick: %s is %s\n", devname, name);
-                  fprintf (stderr_file, "Joystick: Built in driver version: %d.%d.%d\n", JS_VERSION >> 16, (JS_VERSION >> 8) & 0xff, JS_VERSION & 0xff);
-                  fprintf (stderr_file, "Joystick: Kernel driver version  : %d.%d.%d\n", version >> 16, (version >> 8) & 0xff, version & 0xff);
+                  fprintf (stdout, "Joystick: %s is %s\n", devname, name);
+                  fprintf (stdout, "Joystick: Built in driver version: %d.%d.%d\n", JS_VERSION >> 16, (JS_VERSION >> 8) & 0xff, JS_VERSION & 0xff);
+                  fprintf (stdout, "Joystick: Kernel driver version  : %d.%d.%d\n", version >> 16, (version >> 8) & 0xff, version & 0xff);
                   for (j=0; j<joy_data[i].num_axis; j++)
                   {
                      joy_data[i].axis[j].min = -32768;
@@ -118,14 +132,14 @@ void joy_i386_init(void)
                   break;
                }
                /* else we're running on a kernel with 0.8 driver */
-               fprintf (stderr_file, "Joystick: %s unknown type\n", devname);
-               fprintf (stderr_file, "Joystick: Built in driver version: %d.%d.%d\n", JS_VERSION >> 16, (JS_VERSION >> 8) & 0xff, JS_VERSION & 0xff);
-               fprintf (stderr_file, "Joystick: Kernel driver version  : 0.8 ??\n");
-               fprintf (stderr_file, "Joystick: Please update your Joystick driver !\n");
-               fprintf (stderr_file, "Joystick: Using old interface method\n");
+               fprintf (stdout, "Joystick: %s unknown type\n", devname);
+               fprintf (stdout, "Joystick: Built in driver version: %d.%d.%d\n", JS_VERSION >> 16, (JS_VERSION >> 8) & 0xff, JS_VERSION & 0xff);
+               fprintf (stdout, "Joystick: Kernel driver version  : 0.8 ??\n");
+               fprintf (stdout, "Joystick: Please update your Joystick driver !\n");
+               fprintf (stdout, "Joystick: Using old interface method\n");
 #else
-               fprintf (stderr_file, "New joystick driver (1.x.x) support not compiled in.\n");
-               fprintf (stderr_file, "Falling back to 0.8 joystick driver api\n");
+               fprintf (stdout, "New joystick driver (1.x.x) support not compiled in.\n");
+               fprintf (stdout, "Falling back to 0.8 joystick driver api\n");
 #endif            
                joytype = JOY_I386;
             case JOY_I386:
@@ -173,6 +187,7 @@ void joy_i386new_poll (void)
 #ifdef JDEBUG
                fprintf (stderr, "Button=%d,value=%d\n", js.number, js.value);
 #endif
+               process_button(js.number, js.value);
                break;
 
             case JS_EVENT_AXIS:

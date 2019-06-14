@@ -32,6 +32,9 @@ int osd_init(void)
 #endif	
 	if (osd_input_initpre() !=OSD_OK) return OSD_NOT_OK;
 
+	if (osd_input_initpost() != OSD_OK)
+		return -1;
+
 	return OSD_OK;
 }
 
