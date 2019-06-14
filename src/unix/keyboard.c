@@ -194,10 +194,8 @@ void xmame_keyboard_register_event(struct xmame_keyboard_event *event)
 
 void xmame_keyboard_clear(void)
 {
-#if 0
    kbd_fifo_empty(kbd_fifo);
    memset(key, 0, KEY_MAX);
-#endif
 }
 
 /* return a list of all available keys */

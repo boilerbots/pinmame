@@ -242,6 +242,8 @@ static int init_buffered_spriteram(void);
 #endif
 
 
+extern struct sound_stream_struct *sound_stream;
+extern int		sound_enabled;
 /***************************************************************************
 
 	Inline functions
@@ -1272,6 +1274,9 @@ void update_video_and_audio(void)
 
 	/* render */
 	//artwork_update_video_and_audio(&current_display);
+	if (sound_stream && sound_enabled)
+		sound_stream_update(sound_stream);
+
 
 	/* update FPS */
 	recompute_fps(skipped_it);
@@ -1338,7 +1343,7 @@ static void recompute_fps(int skipped_it)
 int updatescreen(void)
 {
 	/* update sound */
-	//sound_update();
+	sound_update();
 
 	/* if we're not skipping this frame, draw the screen */
 	if (osd_skip_this_frame() == 0)
