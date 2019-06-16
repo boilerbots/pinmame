@@ -43,7 +43,6 @@ typedef struct JS_DATA_TYPE joy_struct;
 #endif
 
 //#define JDEBUG
-
 void joy_i386_poll(void);
 void joy_i386new_poll(void);
 static joy_struct my_joy_data;
