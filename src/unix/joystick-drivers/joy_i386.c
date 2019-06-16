@@ -42,7 +42,7 @@ typedef struct JS_DATA_TYPE joy_struct;
    "patches to support other arch's are welcome ;)"
 #endif
 
-#define JDEBUG
+//#define JDEBUG
 
 void joy_i386_poll(void);
 void joy_i386new_poll(void);
