@@ -195,9 +195,9 @@ ifneq (,$(findstring gcc,$(CC)))
   # Optimization level -- choose one of these.
   # Use -O1 if you suspect that -O2 is producing bad code; use -O3 for a 
   # possible speedup; use -Os for a smaller executable.
-  # CFLAGS += -O2
-  # CFLAGS += -O1
-CFLAGS += -O3
+CFLAGS += -O2
+#CFLAGS += -O1
+#CFLAGS += -O3
   # CFLAGS += -Os
 
   # This option should reduce compilation time and disk activity
@@ -264,9 +264,12 @@ CFLAGS += -pipe
   # CFLAGS += -march=athlon-4
 
   # For Raspberry Pi 3+
-CFLAGS += -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard -mlittle-endian 
-#CFLAGS += -ffast-math -fomit-frame-pointer
+  # CFLAGS += -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard -mneon-for-64bits -mlittle-endian 
+  # CFLAGS += -ffast-math #-fomit-frame-pointer
 
+	# For Raspberry Pi 2
+CFLAGS += -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -mlittle-endian 
+CFLAGS += -ffast-math -fomit-frame-pointer
 endif
 
 ###########################################################################

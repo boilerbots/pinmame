@@ -482,6 +482,7 @@ static int run_machine(void)
 	int res = 1;
 
 	/* start the video hardware */
+
 	if (vh_open())
 		bail_and_print("Unable to start video emulation");
 	else
@@ -738,7 +739,6 @@ static int vh_open(void)
 		scale_vectorgames(options.vector_width, options.vector_height, &bmwidth, &bmheight);
 #endif
 
-	/* now allocate the screen bitmap */
 	Machine->scrbitmap = auto_bitmap_alloc_depth(bmwidth, bmheight, Machine->color_depth);
 	if (!Machine->scrbitmap)
 		goto cant_create_scrbitmap;
@@ -1274,10 +1274,12 @@ void update_video_and_audio(void)
 
 	/* render */
 	//artwork_update_video_and_audio(&current_display);
+#if 1
 	if (sound_stream && sound_enabled)
 		sound_stream_update(sound_stream);
 
   osd_poll_joysticks();
+#endif
 
 	/* update FPS */
 	recompute_fps(skipped_it);
