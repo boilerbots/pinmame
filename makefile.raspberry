@@ -180,7 +180,7 @@ ifneq (,$(findstring gcc,$(CC)))
   # Detect non-ANSI C code.
   # CFLAGS += -pedantic -ansi -D_XOPEN_SOURCE -D_BSD_SOURCE \
   # -Wno-long-long -Wno-trigraphs -Dasm=__asm__
- 
+  # CFLAGS += -DDEBUG_SOUND 
   # Check for C89 compliance.
   # CFLAGS += -std=c89
 

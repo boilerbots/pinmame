@@ -4018,7 +4018,9 @@ void ui_display_fps(struct mame_bitmap *bitmap)
 
 	/* get the current FPS text */
 	text = osd_get_fps_text(mame_get_performance_info());
+  printf("DEBUG1 %s\n", text);  // Below code draws outside of the DMD -Curt
 
+#if 0
 	/* loop over lines */
 	while (!done)
 	{
@@ -4048,6 +4050,7 @@ void ui_display_fps(struct mame_bitmap *bitmap)
 		if (!showfps && showfpstemp == 0)
 			schedule_full_refresh();
 	}
+#endif
 }
 
 

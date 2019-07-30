@@ -106,6 +106,7 @@
 
 ***************************************************************************/
 
+#include <unistd.h>
 #include "driver.h"
 #include <ctype.h>
 #include <stdarg.h>
@@ -1279,6 +1280,7 @@ void update_video_and_audio(void)
 		sound_stream_update(sound_stream);
 
   osd_poll_joysticks();
+  //usleep(10000);
 #endif
 
 	/* update FPS */
@@ -1309,10 +1311,10 @@ static void recompute_fps(int skipped_it)
 		cycles_t curr = osd_cycles();
 		double seconds_elapsed = (double)(curr - last_fps_time) * (1.0 / (double)cps);
 		double frames_per_sec = (double)frames_since_last_fps / seconds_elapsed;
-
 		/* compute the performance data */
 		performance.game_speed_percent = 100.0 * frames_per_sec / Machine->drv->frames_per_second;
 		performance.frames_per_second = (double)rendered_frames_since_last_fps / seconds_elapsed;
+printf("frames_per_sec=%lf  speed=%lf\n", frames_per_sec, performance.game_speed_percent);
 
 		/* reset the info */
 		last_fps_time = curr;

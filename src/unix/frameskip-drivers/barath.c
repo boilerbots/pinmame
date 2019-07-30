@@ -5,8 +5,8 @@
 #include "sysdep/misc.h"
 
 /* don't define this for a production version 
-#define barath_debug
  */
+#define barath_debug
 
 #ifdef barath_debug
 static int debug_value;
@@ -19,21 +19,21 @@ static int barath_skip_this_frame(void)
   return (modframe >= FRAMESKIP_LEVELS);
 }
 
+static int sysload = 0;
+static float framerate = 1;
+static float speed = 1;
+static float slow_speed = 1;
 int barath_skip_next_frame(void)
 {
   static uclock_t curr = 0;
   static uclock_t prev = 0;
   static uclock_t avg_uclocks = 0;
   static int frames_skipped = 0;
-  static int sysload = 0;
-  static float framerate = 1;
-  static float speed = 1;
   static float lag_rate = -30;
 
   int skip_this_frame = barath_skip_this_frame();
   int scratch_time = uclock();
 #ifdef barath_debug
-  static float slow_speed = 1;
   int uclocks_per_frame = slow_speed * UCLOCKS_PER_SEC / video_fps;
 #else
   int uclocks_per_frame = UCLOCKS_PER_SEC / video_fps;

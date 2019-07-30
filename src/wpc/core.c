@@ -1834,10 +1834,10 @@ void core_sound_throttle_adj(int sIn, int *sOut, int buffersize, int samplerate)
 #ifdef DEBUG_SOUND
 	{
 		char tmp[161];
-		LARGE_INTEGER performance_count;
-		QueryPerformanceCounter(&performance_count);
+		//LARGE_INTEGER performance_count;
+		//QueryPerformanceCounter(&performance_count);
 
-		sprintf(tmp, "snd clk: %llu in: %d out: %d size: %d delta %d", performance_count.QuadPart, sIn, *sOut, buffersize, delta);
+		sprintf(tmp, "snd in: %d out: %d size: %d delta %d", sIn, *sOut, buffersize, delta);
 		DebugSound(tmp);
 	}
 #endif

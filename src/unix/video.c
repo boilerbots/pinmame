@@ -905,6 +905,7 @@ void osd_update_video_and_audio(struct mame_display *display)
 		if (keyboard_pressed_memory(KEYCODE_HOME))
 			frameskipper = 1;
 	}
+frameskipper = 1;
 
 	if (keyboard_pressed(KEYCODE_LSHIFT))
 	{
@@ -1191,6 +1192,13 @@ int g_low_latency_throttle = 0;
 
 int g_iThrottleAdj = 0;
 
+#ifdef DEBUG_SOUND
+void DebugSound(char *s)
+{
+	fprintf(stdout, "%s\n", s);
+}
+#endif
+
 //1:1 copy from windows video.c
 void SetThrottleAdj(int adj)
 {
@@ -1200,7 +1208,7 @@ void SetThrottleAdj(int adj)
 	static int last = 0;
 	if (adj != last)
 	{
-		sprintf(tmp, "Set throttle adj: %d (cur %d)", adj, g_iThrottleAdjCur);
+		sprintf(tmp, "Set throttle adj: %d (cur %d)", adj, g_iThrottleAdj);
 		DebugSound(tmp);
 		last = adj;
 	}

@@ -1246,7 +1246,6 @@ PINMAME_VIDEO_UPDATE(wpcdmd_update) {
     }
     *column = 0; /* to simplify antialiasing */
   }
-#if 1
   //if (dmdlocals.nextDMDFrame == 0)
   {
     for (int yy = 0; yy < 33; yy++)
@@ -1262,6 +1261,33 @@ PINMAME_VIDEO_UPDATE(wpcdmd_update) {
     //printf("frame=%d\n", dmdlocals.nextDMDFrame);
   }
   offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
+
+#if 0
+	{
+extern cycles_t start_time;
+extern cycles_t end_time;
+extern int frames_displayed;
+extern int frames_to_display;
+extern UINT8 trying_to_quit;
+    cycles_t curr;
+		/* at the end, we need the current time */
+		curr = osd_cycles();
+
+		/* update stats for the FPS average calculation */
+		if (start_time == 0)
+		{
+			/* start the timer going 1 second into the game */
+			if (timer_get_time() > 1.0)
+				start_time = curr;
+		}
+		else
+		{
+			frames_displayed++;
+			if (frames_displayed + 1 == frames_to_display)
+				trying_to_quit = 1;
+			end_time = curr;
+		}
+  }
 #endif
 
   //video_update_core_dmd(bitmap, cliprect, dotCol, layout);
