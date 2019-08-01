@@ -28,8 +28,8 @@ Version 0.1, March 2000
 #include "sound_stream_priv.h"
 #include "fifo.h"
 
-//#define SOUND_STREAM_DEBUG
-//#define SOUND_STREAM_WARNING
+#define SOUND_STREAM_DEBUG
+#define SOUND_STREAM_WARNING
 
 /* private methods */
 FIFO(INLINE, sample_buf, struct sound_stream_sample_buf *)
@@ -194,6 +194,7 @@ void sound_stream_update(struct sound_stream_struct *stream)
 #endif
       
       samples_this_loop = sample_buf->length - sample_buf->pos;
+      if (samples_this_loop > 0) {
       if (samples_this_loop > freespace)
          samples_this_loop = freespace;
       
@@ -211,6 +212,7 @@ void sound_stream_update(struct sound_stream_struct *stream)
       }
       
       sample_buf->pos += result;
+      freespace -= result;
       
       /* was there enough space in the sound device to write the entire sample?
          otherwise try again next update */
@@ -223,8 +225,12 @@ void sound_stream_update(struct sound_stream_struct *stream)
 #endif
          return;
       }
+      } else if (samples_this_loop < 0) {
+        printf("Sample size is negative? samples=%d\n", samples_this_loop);
+      }
          
-      /* is this sample_buf finished ? */
+#if 1
+      /* is this sample_buf FULL ? */
       if(sample_buf->pos == sample_buf->length)
       {
          /* if we have more then one sample_buf queued, queue the next,
@@ -233,16 +239,17 @@ void sound_stream_update(struct sound_stream_struct *stream)
          {
             sample_buf_fifo_get(stream->sample_buf_fifo, &sample_buf);
             sample_buf_fifo_put(stream->empty_sample_buf_fifo, sample_buf);
+            sample_buf->pos = 0;
          }
          else
          {
 #ifdef SOUND_STREAM_WARNING
-            fprintf(stderr, "warning: sound_stream: fifo empty, looping sample\n");
+            fprintf(stderr, "warning: sound_stream: All fifos in use.\n");
 #endif
-            sample_buf->pos = 0;
+            return;
          }
       }
+#endif
       
-      freespace -= result;
    }
 }

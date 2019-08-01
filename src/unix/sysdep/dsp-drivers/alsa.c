@@ -183,7 +183,7 @@ static unsigned int period_time = 100000;               /* period time in us */
 	unsigned int rate       = params->samplerate;
 	unsigned int channels   = (params->type & SYSDEP_DSP_STEREO) ? 2 : 1;
 	snd_pcm_format_t format = (params->type & SYSDEP_DSP_16BIT) ?
-		SND_PCM_FORMAT_S16 /* Signed 16 bit CPU endian */ :
+		SND_PCM_FORMAT_S16_LE /* Signed 16 bit CPU endian */ :
 		SND_PCM_FORMAT_U8;
 	unsigned int rrate;
 
@@ -262,6 +262,7 @@ static unsigned int period_time = 100000;               /* period time in us */
 		return NULL;
 	
 }
+printf("format=%x\n", format);
 	/* set the sample format */
 	err = snd_pcm_hw_params_set_format(priv->pcm_handle, hw_params, format);
 	if (err < 0) {
@@ -272,6 +273,7 @@ static unsigned int period_time = 100000;               /* period time in us */
 		return NULL;
 	}
 
+printf("channels=%x\n", channels);
 	/* set the count of channels */
 	err = snd_pcm_hw_params_set_channels(priv->pcm_handle, hw_params, channels);
 	if (err < 0) {
@@ -281,6 +283,7 @@ static unsigned int period_time = 100000;               /* period time in us */
 		return NULL;
 	}
 
+printf("rate=%d\n", rate);
 /*
 	if (snd_pcm_hw_params_set_rate_near(priv->pcm_handle, hw_params, &rate, 0) < 0) {
 		unsigned int min, max;
@@ -306,18 +309,7 @@ static unsigned int period_time = 100000;               /* period time in us */
                 return NULL;
         }
 
-	/* set the buffer time */
-	err = snd_pcm_hw_params_set_buffer_time_near(priv->pcm_handle, hw_params, &btime, 0);
-        if (err < 0) {
-                printf("Unable to set buffer time %i for playback: %s\n", buffer_time, snd_strerror(err));
-                return NULL;
-        }
-        err = snd_pcm_hw_params_get_buffer_size(hw_params, &size);
-        if (err < 0) {
-                printf("Unable to get buffer size for playback: %s\n", snd_strerror(err));
-                return NULL;
-        }
-        buffer_size = size;
+
 	/* set the period time */
 	err = snd_pcm_hw_params_set_period_time_near(priv->pcm_handle, hw_params, &period_time, &dir);
         if (err < 0) {
@@ -329,7 +321,25 @@ static unsigned int period_time = 100000;               /* period time in us */
                 printf("Unable to get period size for playback: %s\n", snd_strerror(err));
                 return NULL;
         }
+printf("period time=%d  period size=%d\n", period_time, size);
         period_size = size;
+
+
+	/* set the buffer time */
+	err = snd_pcm_hw_params_set_buffer_time_near(priv->pcm_handle, hw_params, &btime, 0);
+        if (err < 0) {
+                printf("Unable to set buffer time %i for playback: %s\n", buffer_time, snd_strerror(err));
+                return NULL;
+        }
+        err = snd_pcm_hw_params_get_buffer_size(hw_params, &size);
+        if (err < 0) {
+                printf("Unable to get buffer size for playback: %s\n", snd_strerror(err));
+                return NULL;
+        }
+printf("buffer time=%d  buffer size=%d\n", btime, size);
+        buffer_size = size;
+
+
 
         /* write the parameters to device */
 	err = snd_pcm_hw_params(priv->pcm_handle, hw_params);
@@ -365,7 +375,7 @@ static unsigned int period_time = 100000;               /* period time in us */
 
         /* start the transfer when the buffer is almost full: */
         /* (buffer_size / avail_min) * avail_min */
-        err = snd_pcm_sw_params_set_start_threshold(priv->pcm_handle, sw_params, (buffer_size / period_size) * period_size);
+        err = snd_pcm_sw_params_set_start_threshold(priv->pcm_handle, sw_params, buffer_size);
         if (err < 0) {
                 printf("Unable to set start threshold mode for playback: %s\n", snd_strerror(err));
                 return NULL;
@@ -502,10 +512,16 @@ static int alsa_dsp_write(struct sysdep_dsp_struct *dsp, unsigned char *data,
 	int data_size, result;
 	struct alsa_dsp_priv_data *priv = dsp->_priv;
 	
-	data_size = count * alsa_dsp_bytes_per_sample[dsp->hw_info.type]
-		* 8 / priv->bits_per_frame;
+	data_size = count * alsa_dsp_bytes_per_sample[dsp->hw_info.type] * 8 / priv->bits_per_frame;
 
+  //printf("count=%d data_size=%d\n", count, data_size);
 	result = snd_pcm_writei(priv->pcm_handle, data, data_size);
+	if (result < 0) {
+    if ((result = snd_pcm_recover(priv->pcm_handle, result, 1)) == 0) {
+        fprintf(stderr_file, "Alsa error: write error: %s\n", snd_strerror(result));
+    }
+  }
+#if 0
 	if (result == -EAGAIN) {
 		return 0;
 	} else if (result == -EPIPE) {
@@ -539,9 +555,9 @@ static int alsa_dsp_write(struct sysdep_dsp_struct *dsp, unsigned char *data,
 			snd_strerror(result));
 		return -1;
 	}
+#endif
 
-	return result * priv->bits_per_frame / 8
-		/ alsa_dsp_bytes_per_sample[dsp->hw_info.type];
+	return result * priv->bits_per_frame / 8 / alsa_dsp_bytes_per_sample[dsp->hw_info.type];
 }
 
 /*

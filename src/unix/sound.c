@@ -11,7 +11,7 @@
 #include <lame/lame.h>
 #endif
 
-/* #define SOUND_DEBUG */
+#define SOUND_DEBUG
 
 static int sound_fake = 0;
 static int sound_samplerate = 44100;
@@ -183,8 +183,8 @@ int osd_start_audio_stream(int stereo)
       Machine->sample_rate = options.samplerate;
       
       /* calculate samples_per_frame */
-      sound_samples_per_frame = Machine->sample_rate /
-         Machine->drv->frames_per_second;
+      sound_samples_per_frame = (Machine->sample_rate /
+         Machine->drv->frames_per_second) + 1;
 #ifdef SOUND_DEBUG
       fprintf(stderr, "debug: sound: samples_per_frame = %d\n",
          sound_samples_per_frame);

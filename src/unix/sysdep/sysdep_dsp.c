@@ -259,6 +259,7 @@ int sysdep_dsp_write(struct sysdep_dsp_struct *dsp,
    if(!count)
       return 0;
 
+#if 0
    /* do we need to emulate? */
    if(memcmp(&dsp->emu_info, &dsp->hw_info, sizeof(struct sysdep_dsp_info)))
    {
@@ -354,6 +355,7 @@ int sysdep_dsp_write(struct sysdep_dsp_struct *dsp,
       }
       data = dsp->convert_buf;
    }
+#endif
 
    return dsp->write(dsp, data, count);
 }
