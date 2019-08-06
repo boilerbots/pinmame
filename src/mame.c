@@ -136,7 +136,6 @@
 #define FRAMES_PER_FPS_UPDATE		12
 
 
-
 /***************************************************************************
 
 	Global variables
@@ -1276,11 +1275,11 @@ void update_video_and_audio(void)
 	/* render */
 	//artwork_update_video_and_audio(&current_display);
 #if 1
-	if (sound_stream && sound_enabled)
-		sound_stream_update(sound_stream);
+	if (sound_stream && sound_enabled) {
+      sound_stream_update(sound_stream);
+  }
 
   osd_poll_joysticks();
-  //usleep(10000);
 #endif
 
 	/* update FPS */

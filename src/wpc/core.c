@@ -1842,6 +1842,7 @@ void core_sound_throttle_adj(int sIn, int *sOut, int buffersize, int samplerate)
 	}
 #endif
 
+#if 0 // Lets not just dump the buffer -Curt
 	if (delta > samplerate * 50 / 1000)
 	{
 		// Over 50ms delta and throttle didn't catch it fast enough.   Drop some samples, but not so
@@ -1852,7 +1853,9 @@ void core_sound_throttle_adj(int sIn, int *sOut, int buffersize, int samplerate)
 
 		SetThrottleAdj(0);
 	}
-	else if (delta > samplerate * 35 / 1000)
+	else 
+#endif
+  if (delta > samplerate * 35 / 1000)
 	{
 		SetThrottleAdj(-4);
 	}

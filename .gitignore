@@ -2,3 +2,6 @@ tags
 sounds.dat
 xpinmame.obj/
 xpinmame.x11
+*.swp
+*.wav
+*.mpg
