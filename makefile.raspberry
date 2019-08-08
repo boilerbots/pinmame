@@ -41,10 +41,6 @@ TARGET = pinmame
 # Special features
 ###########################################################################
 
-# Enable experimental network support.  See 
-# src/unix/doc/multiplayer-readme.txt for more information.
-# XMAME_NET = 1
-
 # Uncomment the next lines to use x86-asm cpu cores.  This is only
 # supported for x86 machines with nasm-0.98 or higher available in your
 # path!  The asm 68k core could cause problems with certain games; please 
@@ -55,19 +51,6 @@ TARGET = pinmame
 # Uncomment to use assembler 68020 engine (CURRENTLY BROKEN).
 # X86_ASM_68020 = 1
 
-# Uncomment to use DRC MIPS3 engine
-# X86_MIPS3_DRC = 1
-
-# uncomment next line to include P-ROC support
-# see http://www.pinballcontrollers.com/
-# PROC = 1
-
-# uncomment next line to include LISY support
-# see http://www.lisy80.com/
-# LISY_X = 1
-# uncomment next line to enable support for LISY fake VIDEO driver
-# this will also select 'vid_lisy' as DISPLAY_METHOD
-# LISY_X_FAKE_VIDEO = 1
 
 ###########################################################################
 # Development environment options 
@@ -552,13 +535,6 @@ DISPLAY_METHOD = dmd
 # Photon 2.x (QNX6), currently buggy, but working...
 # DISPLAY_METHOD = photon2
 
-# LISY by bontango, meaning NO video output
-# automatic selection 
-ifdef LISY_X_FAKE_VIDEO
-DISPLAY_METHOD = vid_lisy
-endif
-
-
 ###########################################################################
 # X-Window options (only needed when X is the display method)
 ###########################################################################
@@ -683,16 +659,6 @@ NASM_FMT  = -f elf
 ifdef PROC
 # Enable support for P-ROC
 CFLAGS += -DPROC_SUPPORT
-endif
-
-ifdef LISY_X
-# Enable support for LISY
-CFLAGS += -DLISY_SUPPORT
-endif
-
-ifdef LISY_X_FAKE_VIDEO
-# Enable support for LISY fake VIDEO driver
-CFLAGS += -DLISY_VIDEO
 endif
 
 
