@@ -185,8 +185,8 @@ ifneq (,$(findstring gcc,$(CC)))
   # CFLAGS += -std=c89
 
   # Enable debugging (e.g., using gdb).
-#CFLAGS += -g -ggdb
-#CPPFLAGS += -g -ggdb
+CFLAGS += -g -ggdb
+CPPFLAGS += -g -ggdb
 
   #########################################################################
   # General optimizations

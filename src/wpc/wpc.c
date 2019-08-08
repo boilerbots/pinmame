@@ -819,13 +819,19 @@ WRITE_HANDLER(wpc_w) {
     case WPC_SOUNDIF:
       //DBGLOG(("sdata:%2x\n",data));
       sndbrd_0_data_w(0,data);
+#ifdef SNDBRD_S11CS   
       if (sndbrd_0_type() == SNDBRD_S11CS) sndbrd_0_ctrl_w(0,0);
+#endif
       break;
     case WPC_SOUNDBACK:
       //DBGLOG(("sctrl:%2x\n",data));
+#ifdef SNDBRD_S11CS   
       if (sndbrd_0_type() == SNDBRD_S11CS)
         { sndbrd_0_data_w(0,data); sndbrd_0_ctrl_w(0,1); }
       else sndbrd_0_ctrl_w(0,data);
+#else
+      sndbrd_0_ctrl_w(0,data);
+#endif
       break;
     case WPC_WATCHDOG:
 	    //Increment irq count - This is the best way to know an IRQ was serviced as this register is written immediately during the IRQ code.
@@ -1093,9 +1099,11 @@ static MACHINE_INIT(wpc) {
   cpu_setbank(7, memory_region(WPC_CPUREGION) + 0x3600);
 
   switch (core_gameData->gen) {
+#ifdef SNDBRD_S11CS   
     case GEN_WPCALPHA_1:
       sndbrd_0_init(SNDBRD_S11CS, 1, memory_region(S11CS_ROMREGION),NULL,NULL);
       break;
+#endif
     case GEN_WPCALPHA_2:
     case GEN_WPCDMD:
     case GEN_WPCFLIPTRON:
