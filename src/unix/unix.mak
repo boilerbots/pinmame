@@ -329,12 +329,6 @@ src/unix/contrib/cutzlib-1.1.4/libz.a:
 	$(MAKE) libz.a \
 	)
 
-ifdef MESS
-$(OBJ)/mess/%.o: mess/%.c
-	$(CC_COMMENT) @echo '[MESS] Compiling $< ...'
-	$(CC_COMPILE) $(CC) $(MY_CFLAGS) -o $@ -c $<
-endif
-
 $(OBJ)/%.o: src/%.c
 	$(CC_COMMENT) @echo 'Compiling $< ...'
 	$(CC_COMPILE) $(CC) $(MY_CFLAGS) -o $@ -c $<

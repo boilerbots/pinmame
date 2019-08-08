@@ -402,7 +402,6 @@ XMAMEROOT = $(HOME)/mame
 # use this for BeOS.
 #MY_CPU = i386_noasm
 
-# MY_CPU = mips
 MY_CPU = arm
 
 
@@ -412,50 +411,6 @@ MY_CPU = arm
 
 # Linux 
 ARCH  = linux
-
-# FreeBSD
-# ARCH  = freebsd
-
-# NetBSD
-# ARCH  = netbsd
-
-# OpenBSD
-# ARCH = openbsd
-
-# Solaris/SunOS
-# ARCH  = solaris
-# For Solaris, add paths where other stuff is; libjpeg and so on...
-# CFLAGS += -I/usr/local/include -I/usr/sfw/include 
-# LDFLAGS += -L/usr/local/lib -L/usr/sfw/lib
-
-# QNX Neutrino (QNX4/QNX6)
-# ARCH = nto
-
-# OpenStep on NeXT systems
-# ARCH  = next
-
-# OpenStep on Apple systems (Cocoa)
-# ARCH  = macosx
-
-# IRIX (with sound requires the dmedia package) (*)
-# ARCH  = irix
-
-# IRIX (with sound using the new al package) (*)
-# ARCH  = irix_al
-
-# AIX (with sound, you'll need the UMS and SOM lpp's installed (under 
-# AIX4))
-# ARCH  = aix
-
-# BeOS on Intel
-# ARCH = beos
-
-# generic UNIX, no sound
-# ARCH  = generic
-
-# (*) For IRIX 6.5 or higher add -DHAVE_SNPRINTF to CFLAGS.irix(_al) in
-# src/unix/Makefile
-
 
 ###########################################################################
 # Input Devices
@@ -490,50 +445,16 @@ JOY_I386 = 1
 # Sound Devices
 ###########################################################################
 
-# Choose any additonal sound drivers you want to include, besides the 
-# native sound driver for your system.
-# SOUND_ESOUND = 1
 SOUND_ALSA = 1
-# SOUND_ARTS_TEIRA = 1
-# SOUND_ARTS_SMOTEK = 1
-# SOUND_SDL = 1
 # SOUND_WAVEOUT = 1
-
 
 ###########################################################################
 # Select your display method; choose only one.
 ###########################################################################
 
-# Note: x11 is the only one supported on almost all platforms.  For BeOS, 
-# use SDL.
-
 # X11
 #DISPLAY_METHOD = x11
 DISPLAY_METHOD = dmd
-
-# SDL library 
-# DISPLAY_METHOD = SDL
-
-# SVGALib, only supported under Linux
-# DISPLAY_METHOD = svgalib
-
-# GGI, only tested under Linux
-# DISPLAY_METHOD = ggi
-
-# OpenGL under X11
-#DISPLAY_METHOD = xgl
-
-# Glide under X11
-# DISPLAY_METHOD = xfx
-
-# Glide in console mode
-# DISPLAY_METHOD = svgafx
-
-# OpenStep bitmaps
-# DISPLAY_METHOD = openstep
-
-# Photon 2.x (QNX6), currently buggy, but working...
-# DISPLAY_METHOD = photon2
 
 ###########################################################################
 # X-Window options (only needed when X is the display method)
@@ -551,32 +472,11 @@ X11_XV = 1
 # on the executable.
 # X11_DGA = 1
 
-# Work around a bug in the XFree86 tdfx driver that prevents the original 
-# mode from being restored when leaving DGA2 mode.
-# TDFX_DGA_WORKAROUND = 1
-
-# The XIL library (Solaris 2.5.1 and higher)
-# X11_XIL = 1
-# Turn off the annoying obsolesence message if XIL is enabled
-# CFLAGS += -DSUNXIL_WARNING_DISABLE
-
 # Choose the location of your X headers and libraries.
 
 # Standard location for X11 
 X11INC		= -I/usr/include/X11
 X11LIB		= -L/usr/lib/X11
-
-# Standard location for XFree86
-#X11INC		= -I/usr/X11R6/include
-#X11LIB		= -L/usr/X11R6/lib
-
-# Standard location for Sun systems
-# X11INC		= -I/usr/openwin/include
-# X11LIB		= -L/usr/openwin/lib
-
-# Some non-standard locations
-# X11INC		= -I/usr/local/include/X11
-# X11LIB		= -L/usr/local/lib
 
 # The default name for the input device used by the X11 joystick driver.
 # Use provided program "xlistdev" to list available ones.
@@ -600,27 +500,9 @@ SDL_CONFIG	= sdl-config
 ##############################################################################
 GLLIBS += -ldl
 
-# General OpenGL (GL/GLU) dynamic loading support for:
-#
-# <OS - System>          <#define>  commentary
-# -----------------------------------------------
-# GNU/Linux, UNIX/X11    _X11_      (loads glx also)
-# Macinstosh OS 9        _MAC_OS9_
-# Macinstosh OS X        _MAC_OSX_
-# Win32                  _WIN32_    (load wgl also)
-#
-# GLU version 1.2 is recommended (e.g., from SGI).  If you 
-# use Mesa's GLU, you may have to add -DGLU_VERSION_1_2 to 
-# the GLCFLAGS below.
 #
 # To get more verbose debugging messages, just add -DGLDEBUG !
 GLCFLAGS += -D_X11_
-
-# Uncomment to add more libraries that Mesa may require.
-# GLLIBS += -lXmu -lXi
-
-# Building against Sun's OpenGL will probably need these.
-# GLCFLAGS += -DNOGLEXT78 -DNOTEXIDXSIZE
 
 # Uncomment depending on which is supplying GLX functions.  nVidia uses
 # libglx, Mesa/SGI use libglut 
@@ -651,16 +533,6 @@ endif
 # Linux/i386.  Also for Solaris/x86, for example.
 ASM_STRIP = src/unix/contrib/porting/strip_
 NASM_FMT  = -f elf
-# a.out settings: Leading underscores + a.out object format.  Tested with
-# netBSD i386.  Also for older Linux installs, FreeBSD, and others.
-# ASM_STRIP = true  # no strip command
-# NASM_FMT  = -f aoutb
-
-ifdef PROC
-# Enable support for P-ROC
-CFLAGS += -DPROC_SUPPORT
-endif
-
 
 ###########################################################################
 # All done.  Type make -f makefile.unix and enjoy xmame/xmess.  ;)

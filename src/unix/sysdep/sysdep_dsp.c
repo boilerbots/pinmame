@@ -65,41 +65,8 @@ static struct rc_option sysdep_dsp_opts[] = {
      NULL }
 };
 static const struct plugin_struct *sysdep_dsp_plugins[] = {
-#ifdef SYSDEP_DSP_OSS
-   &sysdep_dsp_oss,
-#endif
-#ifdef SYSDEP_DSP_NETBSD
-   &sysdep_dsp_netbsd,
-#endif
-#ifdef SYSDEP_DSP_SOLARIS
-   &sysdep_dsp_solaris,
-#endif
-#ifdef SYSDEP_DSP_SOUNDKIT
-   &sysdep_dsp_soundkit,
-#endif
-#ifdef SYSDEP_DSP_COREAUDIO
-   &sysdep_dsp_coreaudio,
-#endif
-#ifdef SYSDEP_DSP_IRIX
-   &sysdep_dsp_irix,
-#endif
-#ifdef SYSDEP_DSP_AIX
-   &sysdep_dsp_aix,
-#endif
-#ifdef SYSDEP_DSP_ESOUND
-   &sysdep_dsp_esound,
-#endif
 #ifdef SYSDEP_DSP_ALSA
    &sysdep_dsp_alsa,
-#endif
-#ifdef SYSDEP_DSP_ARTS_TEIRA
-   &sysdep_dsp_arts,
-#endif
-#ifdef SYSDEP_DSP_ARTS_SMOTEK
-   &sysdep_dsp_arts,
-#endif
-#ifdef SYSDEP_DSP_SDL
-   &sysdep_dsp_sdl,
 #endif
 #ifdef SYSDEP_DSP_WAVEOUT
    &sysdep_dsp_waveout,

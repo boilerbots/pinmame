@@ -11,7 +11,7 @@ COMMON_OBJS  =  \
 	$(OBJDIR)/keyboard.o $(OBJDIR)/devices.o \
 	$(OBJDIR)/video.o $(OBJDIR)/mode.o \
 	$(OBJDIR)/fileio.o $(OBJDIR)/dirio.o $(OBJDIR)/config.o \
-	$(OBJDIR)/fronthlp.o $(OBJDIR)/ident.o $(OBJDIR)/network.o \
+	$(OBJDIR)/fronthlp.o $(OBJDIR)/ident.o  \
 	$(OBJDIR)/snprintf.o $(OBJDIR)/nec765_dummy.o $(OBJDIR)/effect.o \
 	$(OBJDIR)/ticker.o $(OBJDIR)/parallel.o
 
@@ -31,33 +31,13 @@ VID_OBJS.xgl    = $(VID_DIR)/gltool.o $(VID_DIR)/glxtool.o $(VID_DIR)/glcaps.o \
 		  $(VID_DIR)/glvec.o $(VID_DIR)/glgen.o $(VID_DIR)/glexport.o \
 		  $(VID_DIR)/glcab.o $(VID_DIR)/gljpg.o \
 		  $(VID_DIR)/xinput.o
-VID_OBJS.xfx    = $(VID_DIR)/fxgen.o $(VID_DIR)/xinput.o
-VID_OBJS.svgalib = $(VID_DIR)/svgainput.o
-VID_OBJS.svgafx = $(VID_DIR)/svgainput.o $(VID_DIR)/fxgen.o
-VID_OBJS.openstep = $(VID_DIR)/openstep_input.o
-VID_OBJS.photon2 = $(VID_DIR)/photon2_input.o \
-	$(VID_DIR)/photon2_window.o \
-	$(VID_DIR)/photon2_overlay.o
 VID_OBJS = $(VID_DIR)/$(DISPLAY_METHOD).o $(VID_OBJS.$(DISPLAY_METHOD))
 
 # sound driver objs per arch
 DSP_DIR = $(OBJDIR)/sysdep/dsp-drivers
 MIXER_DIR = $(OBJDIR)/sysdep/mixer-drivers
-SOUND_OBJS.linux   = $(DSP_DIR)/oss.o $(MIXER_DIR)/oss.o $(DSP_DIR)/alsa.o $(MIXER_DIR)/alsa.o
-SOUND_OBJS.freebsd = $(DSP_DIR)/oss.o $(MIXER_DIR)/oss.o
-SOUND_OBJS.netbsd  = $(DSP_DIR)/netbsd.o
-#SOUND_OBJS.openbsd = $(DSP_DIR)/oss.o $(MIXER_DIR)/oss.o
-SOUND_OBJS.openbsd = $(DSP_DIR)/netbsd.o 
-SOUND_OBJS.solaris = $(DSP_DIR)/solaris.o $(MIXER_DIR)/solaris.o
-SOUND_OBJS.next    = $(DSP_DIR)/soundkit.o
-SOUND_OBJS.macosx  = $(DSP_DIR)/coreaudio.o
-SOUND_OBJS.nto     = $(DSP_DIR)/io-audio.o
-SOUND_OBJS.irix    = $(DSP_DIR)/irix.o
-SOUND_OBJS.irix_al = $(DSP_DIR)/irix_al.o
-SOUND_OBJS.beos    =
+SOUND_OBJS.linux   =  $(DSP_DIR)/alsa.o $(MIXER_DIR)/alsa.o
 SOUND_OBJS.generic =
-#these need to be converted to plugins first
-#SOUND_OBJS.aix     = $(DSP_DIR)/aix.o
 SOUND_OBJS = $(SOUND_OBJS.$(ARCH)) $(DSP_DIR)/esound.o $(DSP_DIR)/artssound.o \
     $(DSP_DIR)/arts.o $(DSP_DIR)/sdl.o $(DSP_DIR)/waveout.o
 
@@ -85,7 +65,7 @@ OBJDIRS = $(OBJDIR) $(SYSDEP_DIR) $(DSP_DIR) $(MIXER_DIR) $(VID_DIR) \
 ##############################################################################
 
 # per arch
-CFLAGS.linux      = -DSYSDEP_DSP_OSS -DSYSDEP_MIXER_OSS -DHAVE_SNPRINTF -DHAVE_VSNPRINTF
+CFLAGS.linux      = -DHAVE_SNPRINTF -DHAVE_VSNPRINTF
 CFLAGS.generic    =
 
 #all cflags

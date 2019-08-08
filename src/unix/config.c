@@ -37,26 +37,7 @@ static int loadconfig = 1;
 static char *language = NULL;
 static char *gamename = NULL;
 char *rompath_extra = NULL;
-#ifndef MESS
 static char *defaultgamename;
-#else
-static const char *mess_opts;
-void build_crc_database_filename(int game_index);
-
-static int specify_ram(struct rc_option *option, const char *arg, int priority)
-{
-	UINT32 specified_ram;
-
-	specified_ram = ram_parse_string(arg);
-	if (specified_ram == 0)
-	{
-		fprintf(stderr, "Cannot recognize the RAM option %s; aborting\n", arg);
-		return -1;
-	}
-	options.ram = specified_ram;
-	return 0;
-}
-#endif
 
 static int config_handle_arg(char *arg);
 #ifdef MAME_DEBUG
@@ -64,10 +45,6 @@ static int config_handle_debug_size(struct rc_option *option, const char *arg,
 		int priority);
 #endif
 void show_usage(void);
-
-#ifdef MESS
-static int add_device(struct rc_option *option, const char *arg, int priority);
-#endif
 
 /* struct definitions */
 #ifdef PINMAME
@@ -101,31 +78,12 @@ static struct rc_option opts[] = {
 	{ NULL, NULL, rc_link, video_opts, NULL, 0, 0, NULL, NULL },
 	{ NULL, NULL, rc_link, sound_opts, NULL, 0, 0, NULL, NULL },
 	{ NULL, NULL, rc_link, input_opts, NULL, 0, 0, NULL, NULL },
-	{ NULL, NULL, rc_link, network_opts, NULL, 0, 0, NULL, NULL },
 	{ NULL, NULL, rc_link, fileio_opts, NULL, 0, 0, NULL, NULL },
 #ifdef PINMAME
 	{ NULL, NULL, rc_link, pinmame_opts, NULL, 0,	0, NULL, NULL },
 #endif /* PINMAME */
-#ifdef MESS
-	/* FIXME - these option->names should NOT be hardcoded! */
-	{ "MESS specific options", NULL, rc_seperator, NULL, NULL, 0, 0, NULL, NULL },
-	{ "cartridge", "cart", rc_string, &mess_opts, NULL, 0, 0, add_device, "Attach software to cartridge device" },
-	{ "floppydisk","flop", rc_string, &mess_opts, NULL, 0, 0, add_device, "Attach software to floppy disk device" },
-	{ "harddisk",  "hard", rc_string, &mess_opts, NULL, 0, 0, add_device, "Attach software to hard disk device" },
-	{ "cylinder",  "cyln", rc_string, &mess_opts, NULL, 0, 0, add_device, "Attach software to cylinder device" },
-	{ "cassette",  "cass", rc_string, &mess_opts, NULL, 0, 0, add_device, "Attach software to cassette device" },
-	{ "punchcard", "pcrd", rc_string, &mess_opts, NULL, 0, 0, add_device, "Attach software to punch card device" },
-	{ "punchtape", "ptap", rc_string, &mess_opts, NULL, 0, 0, add_device, "Attach software to punch tape device" },
-	{ "printer",   "prin", rc_string, &mess_opts, NULL, 0, 0, add_device, "Attach software to printer device" },
-	{ "serial",    "serl", rc_string, &mess_opts, NULL, 0, 0, add_device, "Attach software to serial device" },
-	{ "parallel",  "parl", rc_string, &mess_opts, NULL, 0, 0, add_device, "Attach software to parallel device" },
-	{ "snapshot",  "dump", rc_string, &mess_opts, NULL, 0, 0, add_device, "Attach software to snapshot device" },
-	{ "quickload", "quik", rc_string, &mess_opts, NULL, 0, 0, add_device, "Attach software to quickload device" },
-	{ "ramsize", "ram", rc_string, &mess_opts, NULL, 0, 0, specify_ram, "Specifies size of RAM (if supported by driver)" },
-#else
 	{ "MAME Related", NULL, rc_seperator, NULL, NULL, 0, 0, NULL, NULL },
 	{ "defaultgame", "def", rc_string, &defaultgamename, "pacman", 0, 0, NULL, "Set the default game started when no game is given on the commandline, only useful for in the configfiles" },
-#endif
 	{ "language", "lang", rc_string, &language, "english", 0, 0, NULL, "Select the language for the menus and osd" },
 	{ "fuzzycmp", "fc", rc_bool, &use_fuzzycmp, "1", 0, 0, NULL, "Enable/disable use of fuzzy gamename matching when there is no exact match" },
 	{ "cheat", "c", rc_bool, &options.cheat, "0", 0, 0, NULL, "Enable/disable cheat subsystem" },
@@ -186,13 +144,11 @@ static int fuzzycmp (const char *s, const char *l)
 	return gaps;
 }
 
-#ifndef MESS
 /* for verify roms which is used for the random game selection */
 static int config_printf(const char *fmt, ...)
 {
 	return 0;
 }
-#endif
 
 static int config_handle_arg(char *arg)
 {
@@ -204,23 +160,10 @@ static int config_handle_arg(char *arg)
 		got_gamename = 1;
 	}
 	else
-#ifdef MESS
-	{
-		if( options.image_count >= MAX_IMAGES )
-		{
-			fprintf(stderr, "error: too many image names specified!\n");
-			return -1;
-		}
-		/* options.image_files[options.image_count].type = iodevice_type; */
-		/* options.image_files[options.image_count].name = arg; */
-		/* options.image_count++; */
-	}
-#else
 	{
 		fprintf(stderr,"error: duplicate gamename: %s\n", arg);
 		return -1;
 	}
-#endif
 
 	return 0;
 }
@@ -444,12 +387,6 @@ int config_init (int argc, char *argv[])
 	game_index = -1;
 
 	if (!gamename)
-#ifdef MESS
-	{
-		show_usage();
-		return OSD_NOT_OK;
-	}
-#else
 	gamename = defaultgamename;
 
 	/* random game? */
@@ -474,18 +411,7 @@ int config_init (int argc, char *argv[])
 		}
 	}
 	else
-#endif
 		/* do we have a driver for this? */
-#ifdef MESS
-		for (i = 0; drivers[i]; i++)
-		{
-			if (strcasecmp(gamename,drivers[i]->name) == 0)
-			{
-				game_index = i;
-				break;
-			}
-		}
-#else
 	{
 		char *begin = strrchr(gamename, '/'), *end;
 		int len;
@@ -518,7 +444,6 @@ int config_init (int argc, char *argv[])
 			}
 		}
 	}
-#endif                                
 
 	/* educated guess on what the user wants to play */
 	if ( (game_index == -1) && use_fuzzycmp)
@@ -574,67 +499,6 @@ int config_init (int argc, char *argv[])
 			return OSD_NOT_OK;
 	}
 
-#ifdef MESS
-	build_crc_database_filename(game_index);
-
-	/* set the image type if nescesarry */
-	for(i=0; i<options.image_count; i++)
-	{
-		if(options.image_files[i].type)
-		{
-			logerror("User specified %s for %s\n",
-					device_typename(options.image_files[i].type),
-					options.image_files[i].name);
-		}
-		else
-		{
-			char *ext;
-			char name[BUF_SIZE];
-			const struct IODevice *dev;
-
-			/* make a copy of the name */
-			strncpy(name, options.image_files[i].name, BUF_SIZE);
-			/* strncpy is buggy */
-			name[BUF_SIZE-1]=0;
-
-			/* get ext, skip .gz */
-			ext = strrchr(name, '.');
-			if (ext && !strcmp(ext, ".gz"))
-			{
-				*ext = 0;
-				ext = strrchr(name, '.');
-			}
-
-			/* Look up the filename extension in the drivers device list */
-			if (ext && (dev = device_first(drivers[game_index])))
-			{
-				ext++; /* skip the "." */
-
-				while (dev)
-				{
-					const char *dst = dev->file_extensions;
-					/* scan supported extensions for this device */
-					while (dst && *dst)
-					{
-						if (strcasecmp(dst,ext) == 0)
-						{
-							logerror("Extension match %s [%s] for %s\n",
-									device_typename(dev->type), dst,
-									options.image_files[i].name);
-
-							options.image_files[i].type = dev->type;
-						}
-						/* skip '\0' once in the list of extensions */
-						dst += strlen(dst) + 1;
-					}
-					dev = device_next(drivers[game_index], dev); 
-				}
-			}
-			if(!options.image_files[i].type)
-				options.image_files[i].type = IO_CARTSLOT;
-		}
-	}
-#endif
 
 	if (recordname)
 	{
@@ -689,11 +553,7 @@ void show_usage(void)
 {
 	/* header */
 	fprintf(stdout_file, 
-#ifdef MESS
-			"Usage: xmess <system> [game] [options]\n"
-#else
 			"Usage: xmame [game] [options]\n"
-#endif 
 			"Options:\n");
 
 	/* actual help message */
@@ -717,37 +577,11 @@ void show_usage(void)
 	/*  fprintf(stdout_file, "\nEnvironment variables:\n\n");
 	    fprint_columns(stdout_file, "ROMPATH", "Rom search path"); */
 	fprintf(stdout_file, "\n"
-#ifdef MESS
-			"M.E.S.S. - Multi-Emulator Super System\n"
-			"Copyright (C) 1998-2003 by the MESS team\n"
-#else
 			"M.A.M.E. - Multiple Arcade Machine Emulator\n"
 			"Copyright (C) 1997-2003 by Nicola Salmoria and the MAME Team\n"
-#endif
 			"%s port maintained by Lawrence Gold\n", NAME);
 }
 
-#ifdef MESS
-/*	add_device() is called when the MESS CLI option has been identified
- *	This searches throught the devices{} struct array to grab the ID of the
- *	option, which then registers the device using register_device()
- */
-static int add_device(struct rc_option *option, const char *arg, int priority)
-{
-	int id;
-	id = device_typeid(option->name);
-	if (id < 0)
-	{
-		/* If we get to here, log the error - This is mostly due to a mismatch in the array */
-		logerror("Command Line Option [-%s] not a valid device - ignoring\n", option->name);
-		return -1;
-	}
-
-	/* A match!  we now know the ID of the device */
-	option->priority = priority;
-	return register_device(id, arg);
-}
-#endif
 
 #ifdef MAME_DEBUG
 /*============================================================ */
