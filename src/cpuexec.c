@@ -1625,16 +1625,17 @@ static void cpu_vblankcallback(int param)
 	/* is it a real VBLANK? */
 	if (!--vblank_countdown)
 	{
-    sound_update(); // Process sound
+    //sound_update(); // Process sound
 
     updatescreen();
 
-    update_audio();
+    //update_audio();
 
-    osd_poll_joysticks();
+    //osd_poll_joysticks();
 
 		/* Set the timer to update the screen */
-		timer_set(TIME_IN_USEC(Machine->drv->vblank_duration), 0, cpu_updatecallback);
+		//timer_set(TIME_IN_USEC(Machine->drv->vblank_duration), 0, cpu_updatecallback);
+		timer_set(TIME_IN_USEC(16667), 0, cpu_updatecallback);
 
 		/* reset the globals */
 		cpu_vblankreset();

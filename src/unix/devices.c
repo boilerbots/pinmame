@@ -851,27 +851,6 @@ void osd_poll_joysticks(void)
 			joystick_rapidfire();
 		}
 	}
-#ifdef UGCICOIN
-	if (ugcicoin)
-	{
-		int id;
-
-		ugci_poll(0);
-
-		/* Check coin-pressed. Simulate a release event */
-		for (id = 0; id < MAX_PLAYERS; id++)
-		{
-			if (coin_pressed[id] && coin_pressed[id]++ > MIN_COIN_WAIT)
-			{
-				struct xmame_keyboard_event event;
-
-				event.press = coin_pressed[id] = 0;
-				event.scancode = COIN_KEYCODE_BASE + id;
-				xmame_keyboard_register_event(&event);
-			}
-		}
-	}
-#endif
 }
 
 int osd_is_joy_pressed (int joycode)

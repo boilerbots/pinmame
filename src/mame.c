@@ -106,7 +106,9 @@
 
 ***************************************************************************/
 
+#include <sys/types.h>
 #include <unistd.h>
+#include <pthread.h>
 #include "driver.h"
 #include <ctype.h>
 #include <stdarg.h>
@@ -120,6 +122,7 @@
 #include "harddisk.h"
 #include "unix/sysdep/sound_stream.h"
 #include "unix/xmame.h"
+#include "sndintrf.h"
 
 /***************************************************************************
 
@@ -173,17 +176,6 @@ static struct performance_info performance;
 static int settingsloaded;
 static int leds_status;
 
-/* artwork callbacks */
-#ifndef MESS
-static struct artwork_callbacks mame_artwork_callbacks =
-{
-	NULL,
-	artwork_load_artwork_file
-};
-#endif
-
-
-
 
 /***************************************************************************
 
@@ -229,15 +221,12 @@ static int decode_graphics(const struct GfxDecodeInfo *gfxdecodeinfo);
 static void compute_aspect_ratio(const struct InternalMachineDriver *drv, int *aspect_x, int *aspect_y);
 static void scale_vectorgames(int gfx_width, int gfx_height, int *width, int *height);
 static int init_buffered_spriteram(void);
-
-#ifdef MESS
-#include "mesintrf.h"
-#define handle_user_interface	handle_mess_user_interface
-#endif
-
+void update_audio(void);
 
 extern struct sound_stream_struct *sound_stream;
 extern int		sound_enabled;
+static pthread_t input_thread;
+static pthread_t sound_thread;
 /***************************************************************************
 
 	Inline functions
@@ -436,8 +425,29 @@ cant_load_language_file:
 	return 1;
 }
 
+void *inputThread(void *arg)
+{
+  printf("Start joystick thread\n");
+  while(1)
+  {
+    usleep(10000);
+    osd_poll_joysticks();
+    //pthread_yield();
+  }
+}
 
-
+void *soundThread(void *arg)
+{
+  printf("Start sound thread\n");
+  //run sound in another thread
+  while(1)
+  {
+    sound_update(); // Process sound
+    update_audio();
+    //pthread_yield();
+    usleep(40000);
+  }
+}
 /*-------------------------------------------------
 	run_machine - start the various subsystems
 	and the CPU emulation; returns non zero in
@@ -469,9 +479,14 @@ static int run_machine(void)
 		{
 			/* start the audio system */
 			if (sound_start())
+      {
 				bail_and_print("Unable to start audio emulation");
+      }
 			else
 			{
+
+        pthread_create(&input_thread, NULL, inputThread, NULL);
+
 #if 0
 				int region;
 
@@ -559,6 +574,8 @@ void run_machine_core(void)
 					if (nvram_file)
 						mame_fclose(nvram_file);
 				}
+
+        pthread_create(&sound_thread, NULL, soundThread, NULL);
 
 				/* run the emulation! */
 				cpu_run();
@@ -705,7 +722,7 @@ static int vh_open(void)
 	params.video_attributes = Machine->drv->video_attributes;
 	params.orientation = Machine->orientation;
 
-	artcallbacks = &mame_artwork_callbacks;
+	//artcallbacks = &mame_artwork_callbacks;
 
 #if 0
 	/* initialize the display through the artwork (and eventually the OSD) layer */
@@ -1319,20 +1336,6 @@ printf("frames_per_sec=%lf  speed=%lf\n", frames_per_sec, performance.game_speed
 		frames_since_last_fps = 0;
 		rendered_frames_since_last_fps = 0;
 	}
-
-	/* for vector games, compute the vector update count once/second */
-	vfcount++;
-	if (vfcount >= (int)Machine->drv->frames_per_second)
-	{
-#ifndef MESS
-		/* from vidhrdw/avgdvg.c */
-		extern int vector_updates;
-
-		performance.vector_updates_last_second = vector_updates;
-		vector_updates = 0;
-#endif
-		vfcount -= (int)Machine->drv->frames_per_second;
-	}
 }
 
 
@@ -1345,14 +1348,17 @@ printf("frames_per_sec=%lf  speed=%lf\n", frames_per_sec, performance.game_speed
 
 int updatescreen(void)
 {
+	int skipped_it = osd_skip_this_frame();
 
 	/* if we're not skipping this frame, draw the screen */
-	if (osd_skip_this_frame() == 0)
+	if (!skipped_it)
 	{
 		profiler_mark(PROFILER_VIDEO);
 		draw_screen();
 		profiler_mark(PROFILER_END);
 	}
+
+  recompute_fps(skipped_it);
 
 #if 0
 	/* the user interface must be called between vh_update() and osd_update_video_and_audio(), */

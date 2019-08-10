@@ -30,6 +30,7 @@
 
 ***************************************************************************/
 
+#include <pthread.h>
 #include "cpuintrf.h"
 #include "driver.h"
 #include "timer.h"
@@ -88,7 +89,7 @@ static mame_timer *callback_timer;
 static int callback_timer_modified;
 static double callback_timer_expire_time;
 
-
+static pthread_mutex_t tlock;
 
 /*-------------------------------------------------
 	get_relative_time - return the current time
@@ -125,11 +126,15 @@ INLINE mame_timer *timer_new(void)
 	/* remove an empty entry */
 	if (!timer_free_head)
 		return NULL;
+
+  pthread_mutex_lock(&tlock);
+
 	timer = timer_free_head;
 	timer_free_head = timer->next;
 	if (!timer_free_head)
 		timer_free_tail = NULL;
 
+  pthread_mutex_unlock(&tlock);
 	return timer;
 }
 
@@ -142,6 +147,8 @@ INLINE mame_timer *timer_new(void)
 
 INLINE void timer_list_insert(mame_timer *timer)
 {
+  pthread_mutex_lock(&tlock);
+
 	double expire = timer->enabled ? timer->expire : TIME_NEVER;
 	mame_timer *t, *lt = NULL;
 
@@ -179,6 +186,8 @@ INLINE void timer_list_insert(mame_timer *timer)
 			else
 				timer_head = timer;
 			t->prev = timer;
+
+      pthread_mutex_unlock(&tlock);
 			return;
 		}
 	}
@@ -190,6 +199,8 @@ INLINE void timer_list_insert(mame_timer *timer)
 		timer_head = timer;
 	timer->prev = lt;
 	timer->next = NULL;
+
+  pthread_mutex_unlock(&tlock);
 }
 
 
@@ -201,6 +212,7 @@ INLINE void timer_list_insert(mame_timer *timer)
 
 INLINE void timer_list_remove(mame_timer *timer)
 {
+  pthread_mutex_lock(&tlock);
 	/* sanity checks for the debug build */
 	#ifdef MAME_DEBUG
 	{
@@ -221,6 +233,7 @@ INLINE void timer_list_remove(mame_timer *timer)
 		timer_head = timer->next;
 	if (timer->next)
 		timer->next->prev = timer->prev;
+  pthread_mutex_unlock(&tlock);
 }
 
 
@@ -232,6 +245,8 @@ INLINE void timer_list_remove(mame_timer *timer)
 void timer_init(void)
 {
 	int i;
+
+  pthread_mutex_init(&tlock, NULL);
 
 	/* we need to wait until the first call to timer_cyclestorun before using real CPU times */
 	global_offset = 0.0;
@@ -262,6 +277,7 @@ void timer_init(void)
 
 void timer_free(void)
 {
+  pthread_mutex_lock(&tlock);
 	int tag = get_resource_tag();
 	mame_timer *timer, *next;
 
@@ -275,6 +291,7 @@ void timer_free(void)
 		if (timer->tag == tag)
 			timer_remove(timer);
 	}
+  pthread_mutex_unlock(&tlock);
 }
 
 
