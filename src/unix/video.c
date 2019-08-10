@@ -304,9 +304,10 @@ void osd_video_initpre()
 	/* first start with the game's built-in orientation */
 	int orientation = drivers[game_index]->flags & ORIENTATION_MASK;
 	options.ui_orientation = orientation;
+#if 0
 
 	if (options.ui_orientation & ORIENTATION_SWAP_XY)
-	{
+1{
 		/* if only one of the components is inverted, switch them */
 		if ((options.ui_orientation & ROT180) == ORIENTATION_FLIP_X ||
 				(options.ui_orientation & ROT180) == ORIENTATION_FLIP_Y)
@@ -396,6 +397,7 @@ void osd_video_initpre()
 		options.use_artwork &= ~ARTWORK_USE_BEZELS;
 	if (!use_artwork)
 		options.use_artwork = ARTWORK_USE_NONE;
+#endif
 }
 
 void orient_rect(struct rectangle *rect)
@@ -1216,94 +1218,3 @@ void SetThrottleAdj(int adj)
 	g_iThrottleAdj = adj;
 }
 
-
-//  LISY dummy/fake video driver
-#ifdef LISY_VIDEO
-
-void osd_pause(int paused)
-{
-        emulation_paused = paused;
-}
-
-void osd_close_display(void)
-{
-}
-
-static int skip_next_frame = 0;
-int osd_skip_this_frame(void)
-{
-        return skip_next_frame;
-}
-
-#ifndef xgl
-struct mame_bitmap *osd_override_snapshot(struct mame_bitmap *bitmap,
-                struct rectangle *bounds)
-{
-        struct mame_bitmap *copy;
-        return copy;
-}
-#endif
-
-const char *osd_get_fps_text(const struct performance_info *performance)
-{
-        static char buffer[1024];
- /* return a pointer to the static buffer */
-        return buffer;
-}
-
-int osd_create_display(const struct osd_create_params *params,
-                UINT32 *rgb_components)
-{
-  return 0;
-}
-
-/* Update the display. */
-void osd_update_video_and_audio(struct mame_display *display)
-{
-	if (sound_stream && sound_enabled)
-	  sound_stream_update(sound_stream);
-}
-
-void osd_video_initpre()
-{
-}
-
-static int video_verify_bpp(struct rc_option *option, const char *arg,
-   int priority)
-{
-  return 0;
-}
-
-static int video_handle_scale(struct rc_option *option, const char *arg,
-   int priority)
-{
-  return 0;
-}
-
-static int video_verify_beam(struct rc_option *option, const char *arg,
-                int priority)
-{
-  return 0;
-}
-
-static int video_verify_flicker(struct rc_option *option, const char *arg,
-                int priority)
-{
-  return 0;
-}
-
-static int video_verify_vectorres(struct rc_option *option, const char *arg,
-   int priority)
-{
-  return 0;
-}
-
-static int video_verify_intensity(struct rc_option *option, const char *arg,
-                int priority)
-{
-        options.vector_intensity = f_intensity;
-        option->priority = priority;
-        return 0;
-}
-
-#endif

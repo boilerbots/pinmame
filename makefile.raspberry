@@ -135,17 +135,6 @@ CFLAGS =
 ifneq (,$(findstring gcc,$(CC)))
 
   #########################################################################
-  # Special cases
-  #########################################################################
-
-  # Uncomment for Linux on a PowerPC system.
-  # CFLAGS += -fsigned-char
-
-  # Uncomment for OpenStep and Mac OS X. 
-  # CFLAGS += -traditional-cpp
-
-
-  #########################################################################
   # Warnings
   #########################################################################
   
@@ -292,14 +281,6 @@ LD	= g++
 
 # For debugging only.  This only works with GNU binutils!!
 # LD	= $(CC) -Wl,-warn-common
-
-# For IRIX R5+K MIPSpro, optimization at link time.  This takes nearly a 
-# gig of memory!!
-# LD    = $(CC) -fullwarn -n32 -mips4 -IPA
-
-# For IRIX R4K MIPSpro, optimization at link time.  This takes nearly a gig
-# of memory!!
-# LD  = $(CC) -fullwarn -n32 -mips3 -IP
 
 
 ###########################################################################
@@ -455,6 +436,7 @@ SOUND_ALSA = 1
 # X11
 #DISPLAY_METHOD = x11
 DISPLAY_METHOD = dmd
+DMD_DIRECT = 1
 
 ###########################################################################
 # X-Window options (only needed when X is the display method)

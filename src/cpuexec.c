@@ -310,7 +310,7 @@ static void cpu_pre_run(void)
 
 	logerror("Machine reset\n");
 
-	begin_resource_tracking();
+	//begin_resource_tracking();
 
 	/* read hi scores information from hiscore.dat */
 	hs_open(Machine->gamedrv->name);
@@ -407,16 +407,20 @@ void cpu_run(void)
 		time_to_reset = 0;
 		while (!time_to_quit && !time_to_reset)
 		{
+#if 0
 			profiler_mark(PROFILER_EXTRA);
 
 			/* if we have a load/save scheduled, handle it */
 			if (loadsave_schedule != LOADSAVE_NONE)
 				handle_loadsave();
+#endif
 			
 			/* execute CPUs */
 			cpu_timeslice();
 
+#if 0
 			profiler_mark(PROFILER_END);
+#endif
 		}
 
 		/* finish up this iteration */

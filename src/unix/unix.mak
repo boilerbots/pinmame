@@ -181,6 +181,10 @@ MY_CFLAGS += -Isrc/unix/contrib/cutzlib-1.1.4 -I../../contrib/cutzlib-1.1.4
 LDFLAGS   += -Lsrc/unix/contrib/cutzlib-1.1.4
 endif
 
+ifdef DMD_DIRECT
+MY_CFLAGS += -DDMD_DIRECT
+endif
+
 ifdef DEBUG
 MY_CFLAGS += -DMAME_DEBUG
 MY_LIBS   += -lcurses

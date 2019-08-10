@@ -97,36 +97,6 @@
 /* called from config.c to set scale parameters */
 void effect_init1()
 {
-        int disable_arbscale = 0;
-
-	switch (effect) {
-		case EFFECT_SCALE2X:
-		case EFFECT_SCAN2:
-			normal_widthscale = 2;
-			normal_heightscale = 2;
-                        disable_arbscale = 1;
-			break;
-		case EFFECT_RGBSTRIPE:
-			normal_widthscale = 3;
-			normal_heightscale = 2;
-                        disable_arbscale = 1;
-			break;
-		case EFFECT_RGBSCAN:
-			normal_widthscale = 2;
-			normal_heightscale = 3;
-                        disable_arbscale = 1;
-			break;
-		case EFFECT_SCAN3:
-			normal_widthscale = 3;
-			normal_heightscale = 3;
-                        disable_arbscale = 1;
-			break;
-	}
-
-	if (yarbsize && disable_arbscale) {
-	  printf("Using effects -- disabling arbitrary scaling\n");
-	  yarbsize = 0;
-	}
 }
 
 /* called from <driver>_create_display by each video driver;

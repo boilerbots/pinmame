@@ -118,14 +118,8 @@
 #include "vidhrdw/vector.h"
 #include "palette.h"
 #include "harddisk.h"
-#if defined(PINMAME) && defined(PROC_SUPPORT)
-#include "p-roc/p-roc.h"
-#endif /* PINMAME && PROC_SUPPORT */
-#if defined(PINMAME) && defined(LISY_SUPPORT)
- #include "lisy/lisy80.h"
- #include "lisy/lisy1.h"
- #include "lisy/utils.h"
-#endif /* PINMAME && LISY_SUPPORT */
+#include "unix/sysdep/sound_stream.h"
+#include "unix/xmame.h"
 
 /***************************************************************************
 
@@ -282,15 +276,12 @@ int run_game(int game)
 {
 	int err = 1;
 
-	begin_resource_tracking();
+	//begin_resource_tracking();
 
 #ifdef MAME_DEBUG
 	/* validity checks -- debug build only */
 	if (validitychecks())
 		return 1;
-	#ifdef MESS
-	if (messvaliditychecks()) return 1;
-	#endif
 #endif
 
 	/* first give the machine a good cleaning */
@@ -301,15 +292,19 @@ int run_game(int game)
 	expand_machine_driver(gamedrv->drv, &internal_drv);
 	Machine->drv = &internal_drv;
 
+#if 1
 	/* initialize the game options */
 	if (init_game_options())
 		return 1;
+#endif
 
+#if 1
 	/* if we're coming in with a savegame request, process it now */
 	if (options.savegame)
 		cpu_loadsave_schedule(LOADSAVE_LOAD, options.savegame);
 	else
 		cpu_loadsave_reset();
+#endif
 
 	/* here's the meat of it all */
 	bailing = 0;
@@ -319,7 +314,7 @@ int run_game(int game)
 		bail_and_print("Unable to initialize system");
 	else
 	{
-		begin_resource_tracking();
+		//begin_resource_tracking();
 
 		/* then finish setting up our local machine */
 		if (init_machine())
@@ -337,11 +332,11 @@ int run_game(int game)
 		}
 
 		/* stop tracking resources and exit the OSD layer */
-		end_resource_tracking();
+		//end_resource_tracking();
 		osd_exit();
 	}
 
-	end_resource_tracking();
+	//end_resource_tracking();
 	return err;
 }
 
@@ -353,10 +348,6 @@ int run_game(int game)
 
 static int init_machine(void)
 {
-#if defined(PINMAME) && defined(PROC_SUPPORT)
-	char * yaml_filename = pmoptions.p_roc;
-#endif /* PINMAME && PROC_SUPPORT */
-
 	/* load the localization file */
 	if (uistring_init(options.language_file) != 0)
 	{
@@ -370,13 +361,6 @@ static int init_machine(void)
 		logerror("code_init failed\n");
 		goto cant_init_input;
 	}
-
-#if defined(PINMAME) && defined(PROC_SUPPORT)
-	procInitialize(yaml_filename);
-#endif /* PINMAME && PROC_SUPPORT */
-#if defined(PINMAME) && defined(LISY_SUPPORT)
-	lisy_init();
-#endif /* PINMAME && LISY_SUPPORT */
 
 	/* if we have inputs, process them now */
 	if (gamedrv->input_ports)
@@ -419,15 +403,6 @@ static int init_machine(void)
 	/* now set up all the CPUs */
 	cpu_init();
 
-#ifdef MESS
-	/* initialize the devices */
-	if (devices_init(gamedrv) || devices_initialload(gamedrv, TRUE))
-	{
-		logerror("devices_init failed\n");
-		goto cant_load_roms;
-	}
-#endif
-
 	/* load input ports settings (keys, dip switches, and so on) */
 	settingsloaded = load_input_port_settings();
 
@@ -444,14 +419,6 @@ static int init_machine(void)
 	/* call the game driver's init function */
 	if (gamedrv->driver_init)
 		(*gamedrv->driver_init)();
-#ifdef MESS
-	/* initialize the devices */
-	if (devices_initialload(gamedrv, FALSE))
-	{
-		logerror("devices_initialload failed\n");
-		goto cant_load_roms;
-	}
-#endif
 
 	return 0;
 
@@ -483,23 +450,29 @@ static int run_machine(void)
 
 	/* start the video hardware */
 
+#if 0
 	if (vh_open())
 		bail_and_print("Unable to start video emulation");
 	else
+#endif
 	{
+#if 0
 		/* initialize tilemaps */
 		tilemap_init();
-
+#endif
 		/* start up the driver's video */
+#if 1
 		if (Machine->drv->video_start && (*Machine->drv->video_start)())
 			bail_and_print("Unable to start video emulation");
 		else
+#endif
 		{
 			/* start the audio system */
 			if (sound_start())
 				bail_and_print("Unable to start audio emulation");
 			else
 			{
+#if 0
 				int region;
 
 				/* free memory regions allocated with REGIONFLAG_DISPOSE (typically gfx roms) */
@@ -514,6 +487,7 @@ static int run_machine(void)
 						free(Machine->memory_region[region].base);
 						Machine->memory_region[region].base = 0;
 					}
+#endif
 
 				/* now do the core execution */
 				run_machine_core();
@@ -528,9 +502,11 @@ static int run_machine(void)
 				(*Machine->drv->video_stop)();
 		}
 
+#if 0
 		/* close down the tilemap and video systems */
 		tilemap_close();
 		vh_close();
+#endif
 	}
 
 	return res;
@@ -544,11 +520,13 @@ static int run_machine(void)
 
 void run_machine_core(void)
 {
+#if 0
 	/* disable artwork for the start */
 	artwork_enable(0);
+#endif
 
 	/* if we didn't find a settings file, show the disclaimer */
-	if (settingsloaded || options.skip_disclaimer || showcopyright(artwork_get_ui_bitmap()) == 0)
+	//if (settingsloaded || options.skip_disclaimer || showcopyright(artwork_get_ui_bitmap()) == 0)
 	{
 #ifndef VPINMAME
 		/* show info about incorrect behaviour (wrong colors etc.) */
@@ -558,7 +536,7 @@ void run_machine_core(void)
 			/* show info about the game */
 			if (options.skip_gameinfo || showgameinfo(artwork_get_ui_bitmap()) == 0)
 			{
-				init_user_interface();
+				//init_user_interface();
 
 				/* enable artwork now */
 				//artwork_enable(1);
@@ -567,9 +545,11 @@ void run_machine_core(void)
 				if (!gamedrv->rom)
 					options.cheat = 0;
 
+#if 0
 				/* start the cheat engine */
 				if (options.cheat)
 					InitCheat();
+#endif
 
 				/* load the NVRAM now */
 				if (Machine->drv->nvram_handler)
@@ -594,9 +574,11 @@ void run_machine_core(void)
 					}
 				}
 
+#if 0
 				/* stop the cheat engine */
 				if (options.cheat)
 					StopCheat();
+#endif
 
 				/* save input ports settings */
 				save_input_port_settings();
@@ -723,11 +705,7 @@ static int vh_open(void)
 	params.video_attributes = Machine->drv->video_attributes;
 	params.orientation = Machine->orientation;
 
-#ifdef MESS
-	artcallbacks = &mess_artwork_callbacks;
-#else
 	artcallbacks = &mame_artwork_callbacks;
-#endif
 
 #if 0
 	/* initialize the display through the artwork (and eventually the OSD) layer */
@@ -1157,6 +1135,7 @@ void reset_partial_updates(void)
 void force_partial_update(int scanline)
 {
 	struct rectangle clip = Machine->visible_area;
+#if 0
 
 	/* if skipping this frame, bail */
 	if (osd_skip_this_frame())
@@ -1190,6 +1169,9 @@ void force_partial_update(int scanline)
 
 	/* remember where we left off */
 	last_partial_scanline = scanline + 1;
+#else
+		(*Machine->drv->video_update)(Machine->scrbitmap, &clip);
+#endif
 }
 
 
@@ -1204,11 +1186,13 @@ void draw_screen(void)
 {
 	/* finish updating the screen */
 	force_partial_update(Machine->visible_area.max_y);
+#if 0
 	if( gbPriorityBitmapIsDirty )
 	{
 		fillbitmap( priority_bitmap, 0x00, NULL );
 		gbPriorityBitmapIsDirty = 0;
 	}
+#endif
 }
 
 
@@ -1225,6 +1209,7 @@ void update_video_and_audio(void)
 	debug_trace_delay = 0;
 #endif
 
+#if 0
 	/* fill in our portion of the display */
 	current_display.changed_flags = 0;
 
@@ -1246,6 +1231,7 @@ void update_video_and_audio(void)
 			current_display.vector_dirty_pixels = vector_dirty_list;
 			current_display.changed_flags |= VECTOR_PIXELS_CHANGED;
 		}
+#endif
 
 #ifdef MAME_DEBUG
 	/* set the debugger bitmap */
@@ -1262,6 +1248,7 @@ void update_video_and_audio(void)
 	}
 #endif
 
+#if 0
 	/* set the LED status */
 	if (leds_status != current_display.led_state)
 	{
@@ -1274,6 +1261,8 @@ void update_video_and_audio(void)
 
 	/* render */
 	//artwork_update_video_and_audio(&current_display);
+#endif
+
 #if 1
 	if (sound_stream && sound_enabled) {
       sound_stream_update(sound_stream);
@@ -1285,9 +1274,11 @@ void update_video_and_audio(void)
 	/* update FPS */
 	recompute_fps(skipped_it);
 
+#if 0
 	/* reset dirty flags */
 	visible_area_changed = 0;
 	if (ui_dirty) ui_dirty--;
+#endif
 }
 
 
@@ -1367,6 +1358,7 @@ int updatescreen(void)
 	/* blit to the screen */
 	update_video_and_audio();
 
+#if 0
 	/* call the end-of-frame callback */
 	if (Machine->drv->video_eof)
 	{
@@ -1374,6 +1366,7 @@ int updatescreen(void)
 		(*Machine->drv->video_eof)();
 		profiler_mark(PROFILER_END);
 	}
+#endif
 
 	return 0;
 }

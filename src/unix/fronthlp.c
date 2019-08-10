@@ -44,9 +44,6 @@ struct rc_option frontend_list_opts[] = {
 	{ "listgamelist", "lgl", rc_set_int, &list, NULL, LIST_GAMELIST, 0, NULL, "Like -list, with specialy formatted extra info for generating gamelist.mame" },
 	{ "listsourcefile", "lsf", rc_set_int, &list, NULL, LIST_SOURCEFILE, 0, NULL, "Like -list, with driver sourcefile" },
 	{ "listcolors", "lcol", rc_set_int, &list, NULL, LIST_COLORS, 0, NULL, "Like -list, with the number of colors used" },
-#ifdef MESS
-	{ "listdevices", "ldev", rc_set_int, &list, NULL, LIST_DEVICES, 0, NULL, "Like -list, with devices and image file extensions supported" },
-#endif
 	{ "listromsize", "lrs", rc_set_int, &list, NULL, LIST_ROMSIZE, 0, NULL, "Like -list, with the year and size of the roms used" },
 	{ "listpalettesize", "lps", rc_set_int, &list, NULL, LIST_ROMSIZE, 0, NULL, "Like -list, with the year and palette size of the roms used" },
 	{ "listroms", "lr", rc_set_int, &list, NULL, LIST_ROMS, 0, NULL, "Like -list, but lists used ROMs" },
@@ -504,41 +501,6 @@ int frontend_list(char *gamename)
 					fprintf(stdout_file, "%-8s  %d\n", drivers[i]->name,
 							drv.total_colors);
 					break;
-#ifdef MESS
-				case LIST_DEVICES: /* list devices */
-					if(device_first(drivers[i]))
-					{
-						const struct IODevice *dev = device_first(drivers[i]);
-
-						j = 0;
-
-						fprintf(stdout_file, "%-8s  ", drivers[i]->name);
-
-						while (dev)
-						{
-							const char *src = dev->file_extensions;
-
-							if (!j) /* first time ? */
-								fprintf(stdout_file, "%-10s  ",
-										device_typename(dev->type));
-							else
-								fprintf(stdout_file, "%-8s  %-10s  ", "",
-										device_typename(dev->type));
-
-							while (*src)
-							{
-								fprintf(stdout_file, ".%-3s  ", src);
-								src += strlen(src) + 1;
-							}
-							fprintf(stdout_file, "\n");
-							j++;
-							dev = device_next(drivers[i], dev);
-						}
-					}
-					else
-						skipped++;
-					break;
-#endif
 				case LIST_ROMSIZE:
 					{
 						const struct RomModule *region, *rom, *chunk;

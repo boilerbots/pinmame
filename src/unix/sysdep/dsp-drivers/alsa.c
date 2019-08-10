@@ -171,14 +171,14 @@ static void *alsa_dsp_create(const void *flags)
 	snd_pcm_uframes_t period_size;
 	snd_pcm_uframes_t chunk_size;
       
-static snd_output_t *output = NULL;
- snd_pcm_uframes_t size;
+  static snd_output_t *output = NULL;
+  snd_pcm_uframes_t size;
 
-        unsigned int btime                            = buffer_time;
+  unsigned int btime                            = buffer_time;
 	const struct sysdep_dsp_create_params *params = flags;
-        const char *device                            = params->device;
-//        snd_pcm_uframes_t period_frames               = 1;
-static unsigned int period_time = 100000;               /* period time in us */
+  const char *device                            = params->device;
+  //        snd_pcm_uframes_t period_frames               = 1;
+  static unsigned int period_time = 100000;               /* period time in us */
 	/* rate >= 2000 && rate <= 128000 */
 	unsigned int rate       = params->samplerate;
 	unsigned int channels   = (params->type & SYSDEP_DSP_STEREO) ? 2 : 1;
@@ -321,7 +321,7 @@ printf("rate=%d\n", rate);
                 printf("Unable to get period size for playback: %s\n", snd_strerror(err));
                 return NULL;
         }
-printf("period time=%d  period size=%d\n", period_time, size);
+printf("period time=%d  period size=%ld\n", period_time, size);
         period_size = size;
 
 
@@ -336,7 +336,7 @@ printf("period time=%d  period size=%d\n", period_time, size);
                 printf("Unable to get buffer size for playback: %s\n", snd_strerror(err));
                 return NULL;
         }
-printf("buffer time=%d  buffer size=%d\n", btime, size);
+printf("buffer time=%d  buffer size=%ld\n", btime, size);
         buffer_size = size;
 
 

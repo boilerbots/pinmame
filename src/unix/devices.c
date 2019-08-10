@@ -335,13 +335,6 @@ int osd_input_initpre(void)
 	if (use_mouse)
 		fprintf (stderr_file, "Mouse/Trakball selected.\n");
 
-#ifdef UGCICOIN
-	if (ugcicoin) {
-		if (ugci_init(ugci_callback, UGCI_EVENT_MASK_COIN | UGCI_EVENT_MASK_PLAY, 1) <= 0)
-			ugcicoin = 0;
-	}
-#endif
-
 #ifdef JOY_PS2
 	/* Special mapping for PlayStation2 -- to be removed when 0.60 patch done */
 	/* Add mappings for P1 SELECT, START, P2 SELECT, START */
@@ -392,11 +385,6 @@ int osd_input_initpost(void)
 		case JOY_I386NEW:
 		case JOY_I386:
 			joy_i386_init();
-			break;
-#endif
-#ifdef LIN_FM_TOWNS
-		case JOY_PAD:
-			joy_pad_init ();
 			break;
 #endif
 #ifdef X11_JOYSTICK

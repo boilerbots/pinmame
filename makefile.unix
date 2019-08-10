@@ -342,30 +342,7 @@ SOUND_ALSA = 1
 
 # X11
 DISPLAY_METHOD = x11
-
-# SDL library 
-# DISPLAY_METHOD = SDL
-
-# SVGALib, only supported under Linux
-# DISPLAY_METHOD = svgalib
-
-# GGI, only tested under Linux
-# DISPLAY_METHOD = ggi
-
-# OpenGL under X11
-#DISPLAY_METHOD = xgl
-
-# Glide under X11
-# DISPLAY_METHOD = xfx
-
-# Glide in console mode
-# DISPLAY_METHOD = svgafx
-
-# OpenStep bitmaps
-# DISPLAY_METHOD = openstep
-
-# Photon 2.x (QNX6), currently buggy, but working...
-# DISPLAY_METHOD = photon2
+DMD_DIRECT = 1
 
 ###########################################################################
 # X-Window options (only needed when X is the display method)

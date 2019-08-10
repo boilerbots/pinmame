@@ -19,7 +19,7 @@
   added support for 32bpp XFree86 modes
   new update routines: 8->32bpp & 16->32bpp
 
- TODO: Test the HERMES code.
+ TODO: 
        Test the 16bpp->24bpp update routine
        Test the 16bpp->32bpp update routine
        Improve performance.
@@ -30,7 +30,6 @@
 #define __SDL_C
 
 #undef SDL_DEBUG
-/* #define DIRECT_HERMES */
 
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -40,9 +39,6 @@
 #include "keyboard.h"
 #include "driver.h"
 #include "SDL-keytable.h"
-#ifdef DIRECT_HERMES 
-#include <Hermes/Hermes.h>
-#endif /* DIRECT_HERMES */
 #include "effect.h"
 
 static int Vid_width;
@@ -55,13 +51,6 @@ static int mode_number=-1;
 static int start_fullscreen=0;
 SDL_Color *Colors=NULL;
 static int cursor_state; /* previous mouse cursor state */
-
-#ifdef DIRECT_HERMES
-HermesHandle   H_PaletteHandle;
-HermesHandle H_ConverterHandle;
-int32_t* H_Palette;
-static int H_Palette_modified = 0;
-#endif
 
 typedef void (*update_func_t)(struct mame_bitmap *bitmap);
 
@@ -104,9 +93,6 @@ int sysdep_init(void)
       fprintf (stderr, "SDL: Error: %s\n",SDL_GetError());
       return OSD_NOT_OK;
    } 
-#ifdef DIRECT_HERMES
-   Hermes_Init(0);
-#endif /* DIRECT_HERMES */
    fprintf (stderr, "SDL: Info: SDL initialized\n");
    atexit (SDL_Quit);
    return OSD_OK;
@@ -122,10 +108,6 @@ int sysdep_create_display(int depth)
    SDL_Rect** vid_modes;
    const SDL_VideoInfo* video_info;
    int vid_modes_i;
-#ifdef DIRECT_HERMES 
-   HermesFormat* H_src_format;
-   HermesFormat* H_dst_format;
-#endif /* DIRECT_HERMES */
    int vid_mode_flag; /* Flag to set the video mode */
 
    video_info = SDL_GetVideoInfo();
@@ -273,26 +255,11 @@ int sysdep_create_display(int depth)
       fprintf (stderr, "SDL: Info: Video mode set as %d x %d, depth %d\n", Vid_width, Vid_height, Vid_depth);
    }
 
-#ifndef DIRECT_HERMES
    Offscreen_surface = SDL_CreateRGBSurface(SDL_SWSURFACE,Vid_width,Vid_height,Vid_depth,0,0,0,0); 
    if(Offscreen_surface==NULL) {
       SDL_Quit();
       exit (OSD_NOT_OK);
    }
-#else /* DIRECT_HERMES */
-   /* No offscreen surface when using hermes directly */
-   H_ConverterHandle = Hermes_ConverterInstance(0);
-   H_src_format = Hermes_FormatNew (8,0,0,0,0,HERMES_INDEXED);
-   /* TODO: More general destination choosing - uptil
-       now only 16 bit */
-   H_dst_format = Hermes_FormatNew (16,Surface->format->Rmask,Surface->format->Gmask,Surface->format->Bmask,0,0);
-   /*  H_dst_format = Hermes_FormatNew (16,5,5,5,0,0); */
-   if ( ! (Hermes_ConverterRequest(H_ConverterHandle,H_src_format , H_dst_format)) ) {
-      fprintf (stderr_file, "Hermes: Info: Converter request failed\n");
-      exit (OSD_NOT_OK);
-   }
-#endif /* DIRECT_HERMES */
-
 
    /* Creating event mask */
    SDL_EventState(SDL_KEYUP, SDL_ENABLE);
@@ -425,7 +392,6 @@ void sdl_update_rgb_direct_32bpp(struct mame_bitmap *bitmap)
 #undef SRC_PIXEL
 }
 
-#ifndef DIRECT_HERMES
 void sysdep_update_display(struct mame_bitmap *bitmap)
 {
    SDL_Rect srect = { 0,0,0,0 };
@@ -449,159 +415,6 @@ void sysdep_update_display(struct mame_bitmap *bitmap)
    if(hardware==0)
       SDL_UpdateRects(Surface,1, &drect);
 }
-#else /* DIRECT_HERMES */
-void sysdep_update_display(struct mame_bitmap *bitmap)
-{
-   int i,j,x,y,w,h;
-   int locked =0 ;
-   static int first_run = 1;
-   int line_amount;
-
-#ifdef SDL_DEBUG
-   static int update_count = 0;
-   static char* bak_bitmap;
-   int corrected = 0;
-   int debug = 0;
-#endif /* SDL_DEBUG */
-
-   if (H_Palette_modified) {
-      Hermes_PaletteInvalidateCache(H_PaletteHandle);
-      Hermes_ConverterPalette(H_ConverterHandle,H_PaletteHandle,0);
-      H_Palette_modified = 0;
-   }
-   
-#ifdef PANANOIC 
-      memset(Offscreen_surface->pixels,'\0' ,Vid_height * Vid_width);
-#endif 
-
-   switch   (use_dirty) {
-      long line_min;
-      long line_max;
-      long col_min;
-      long col_amount;
-
-      
-#ifdef SDL_DEBUG
-      int my_off;
-#endif       
-   case 0:
-      /* Not using dirty */
-      if (SDL_MUSTLOCK(Surface))
-         SDL_LockSurface(Surface);
-      
-      Hermes_ConverterCopy (H_ConverterHandle, 
-               bitmap->line[0] ,
-               0, 0 , 
-               Vid_width,Vid_height, bitmap->line[1] - bitmap->line[0],
-               Surface->pixels, 
-               0,0,
-               Vid_width, Vid_height, Vid_width <<1 );
-      
-      SDL_UnlockSurface(Surface);
-      SDL_UpdateRect(Surface,0,0,Vid_width,Vid_height);
-      break;
-
-   case 1:
-      /* Algorithm:
-          search through dirty & find max maximal polygon, which 
-          we can get to clipping (don't know if 8x8 is enought)
-      */
-      /*osd_dirty_merge();*/
-      
-   case 2:
-      h = (bitmap->height+7) >> 3; /* Divide by 8, up rounding */
-      w = (bitmap->width +7) >> 3; /* Divide by 8, up rounding */
-      
-#ifdef PARANOIC
-      /* Rechecking dirty correctness ...*/
-      if ( (! first_run) && debug) {
-         for (y=0;y<h;y++ ) {
-            for (i=0;i<8;i++) {
-               int line_off = ((y<<3) + i);
-               for (x=0;x<w;x++) {
-                  for (j=0;j<8;j++) {
-                     int col_off = ((x<<3) + j);
-                     if ( *(bak_bitmap + (line_off * (bitmap->line[1]- bitmap->line[0])) + col_off ) != *(*(bitmap->line + line_off) + col_off)) {
-                        if (! dirty_blocks[y][x] ) {
-                           printf ("Warn!!! Block should be dirty %d, %d, %d - correcting \n",y,x,i);
-                           dirty_blocks[y][x] = 1;
-                           dirty_lines[y]=1;
-                           corrected = 1;
-                        }
-                     } 
-                  }
-               }
-            }
-         }
-      } else {
-         bak_bitmap = (void*)malloc(w<<3 * h<<3);
-      }
-      
-      if (! corrected) {
-         printf ("dirty ok\n");
-      }
-      
-      first_run = 0;
-      for (i = 0;i< bitmap->height;i++)
-         memcpy(bak_bitmap + (bitmap->line[1] - bitmap->line[0])*i,*(bitmap->line+i),w<<3);
-      
-#endif /* PARANOIC */
-
-      /* #define dirty_lines old_dirty_lines     */
-      /* #define dirty_blocks old_dirty_blocks */
-      
-      for (y=0;y<h;y++) {
-         if (dirty_lines[y]) {
-            line_min = y<<3;
-            line_max = line_min + 8;
-            /* old_dirty_lines[y]=1; */
-            for (x=0;x<w;x++) {
-               if (dirty_blocks[y][x]) {
-                  col_min = x<<3;
-                  col_amount = 0;
-                  do { 
-                     col_amount++; 
-                     dirty_blocks[y][x] = 0;
-                     x++; 
-                  } while (dirty_blocks[y][x]); 
-
-                  dirty_blocks[y][x] = 0;
-                  col_amount <<= 3;
-
-                  line_amount = line_max - line_min;
-                  /* Trying to use direct hermes library for fast blitting */
-                  if (SDL_MUSTLOCK(Surface))
-                     SDL_LockSurface(Surface);
-               
-                  Hermes_ConverterCopy (H_ConverterHandle, 
-                     bitmap->line[0] ,
-                     col_min, line_min , 
-                     col_amount,line_amount, bitmap->line[1] - bitmap->line[0],
-                     Surface->pixels, 
-                     col_min, line_min, 
-                     col_amount ,line_amount, Vid_width <<1 );
-               
-                  SDL_UnlockSurface(Surface);
-                  SDL_UpdateRect(Surface,col_min,line_min,col_amount,line_amount);
-               }
-            }
-            dirty_lines[y] = 0;
-         }
-      }
-      
-      /* Vector game .... */
-      break;
-      return ;
-   }
-   
-   /* TODO - It's the real evil - better to use would be original 
-       hermes routines */
-
-#ifdef SDL_DEBUG
-   update_count++;
-#endif
-}
-#endif /* DIRECT_HERMES */
 
 /* shut up the display */
 void sysdep_display_close(void)
@@ -626,7 +439,6 @@ int sysdep_display_alloc_palette(int totalcolors)
    if (Vid_depth != 8)
       return 0;
 
-#ifndef DIRECT_HERMES
    Colors = (SDL_Color*) malloc (totalcolors * sizeof(SDL_Color));
    if( !Colors )
       return 1;
@@ -636,13 +448,6 @@ int sysdep_display_alloc_palette(int totalcolors)
       (Colors + i)->b = 0x00;
    }
    SDL_SetColors (Offscreen_surface,Colors,0,totalcolors-1);
-#else /* DIRECT_HERMES */
-   H_PaletteHandle = Hermes_PaletteInstance();
-   if ( !(H_Palette = Hermes_PaletteGet(H_PaletteHandle)) ) {
-      fprintf (stderr_file, "Hermes: Info: PaletteHandle invalid");
-      exit(OSD_NOT_OK);
-   }
-#endif /* DIRECT_HERMES */
 
    fprintf (stderr, "SDL: Info: Palette with %d colors allocated\n", totalcolors);
    return 0;
@@ -655,7 +460,6 @@ int sysdep_display_set_pen(int pen,unsigned char red, unsigned char green, unsig
    fprintf(stderr,"sysdep_display_set_pen(%d,%d,%d,%d)\n",pen,red,green,blue);
 #endif
 
-#ifndef DIRECT_HERMES
    if( Colors ) {
       (Colors + pen)->r = red;
       (Colors + pen)->g = green;
@@ -665,10 +469,6 @@ int sysdep_display_set_pen(int pen,unsigned char red, unsigned char green, unsig
          warned = 0;
       }
    }
-#else /* DIRECT_HERMES */
-   *(H_Palette + pen) = (red<<16) | ((green) <<8) | (blue );
-   H_Palette_modified = 1; 
-#endif 
 
 #ifdef SDL_DEBUG
    fprintf(stderr, "STD: Debug: Pen %d modification: r %d, g %d, b, %d\n", pen, red,green,blue);
@@ -764,6 +564,7 @@ void sysdep_update_keyboard()
    }
 }
 
+#if 0
 /* added funcions */
 int sysdep_display_16bpp_capable(void)
 {
@@ -771,6 +572,7 @@ int sysdep_display_16bpp_capable(void)
    video_info = SDL_GetVideoInfo();
    return ( video_info->vfmt->BitsPerPixel >=16);
 }
+#endif
 
 int list_sdl_modes(struct rc_option *option, const char *arg, int priority)
 {

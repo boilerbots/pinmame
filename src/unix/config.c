@@ -313,7 +313,7 @@ int config_init (int argc, char *argv[])
 	if (!stderr_file) stderr_file = stderr;
 	if (!stdout_file) stdout_file = stdout;
 
-	effect_init1();
+	//effect_init1();
 
 	if (showconfig)
 	{

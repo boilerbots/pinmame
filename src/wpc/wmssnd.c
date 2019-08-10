@@ -1453,16 +1453,6 @@ static void adsp_init(data8_t *(*getBootROM)(int soft),
   adsp2105_set_tx_callback(adsp_txCallback);
 }
 
-#if MAMEVER < 6300
-static void adsp2105_load_boot_data(data8_t *srcdata, data32_t *dstdata) {
-  UINT32 size = 8 * (srcdata[3] + 1), i;
-  for (i = 0; i < size; i++) {
-    UINT32 opcode = (srcdata[i*4+0] << 16) | (srcdata[i*4+1] << 8) | srcdata[i*4+2];
-    ADSP2100_WRPGM(&dstdata[i], opcode);
-  }
-}
-#endif /* MAMEVER */
-
 static void adsp_boot(int soft) {
   adsp2105_load_boot_data(adsp.getBootROM(soft), (UINT32 *)(dcslocals.cpuRegion+ADSP2100_PGM_OFFSET));
   timer_enable(adsp.irqTimer, FALSE);

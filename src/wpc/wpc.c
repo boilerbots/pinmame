@@ -1221,7 +1221,6 @@ static VIDEO_START(wpc_dmd) {
   return 0;
 }
 
-//static VIDEO_UPDATE(wpc_dmd) {
 PINMAME_VIDEO_UPDATE(wpcdmd_update) {
   tDMDDot dotCol;
   int ii,jj,kk;
