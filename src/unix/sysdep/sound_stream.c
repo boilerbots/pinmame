@@ -29,7 +29,7 @@ Version 0.1, March 2000
 #include "fifo.h"
 
 //#define SOUND_STREAM_DEBUG
-#define SOUND_STREAM_WARNING
+//#define SOUND_STREAM_WARNING
 
 /* private methods */
 FIFO(INLINE, sample_buf, struct sound_stream_sample_buf *)

@@ -1625,7 +1625,7 @@ static void cpu_vblankcallback(int param)
 	/* is it a real VBLANK? */
 	if (!--vblank_countdown)
 	{
-    sound_update(); // Sound out to OS
+    sound_update(); // Process sound
 
     updatescreen();
 
