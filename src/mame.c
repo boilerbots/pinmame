@@ -1200,6 +1200,14 @@ void draw_screen(void)
 	update_video_and_audio - actually call the
 	OSD layer to perform an update
 -------------------------------------------------*/
+void update_audio(void)
+{
+
+	if (sound_stream && sound_enabled) {
+      sound_stream_update(sound_stream);
+  }
+
+}
 
 void update_video_and_audio(void)
 {
@@ -1337,8 +1345,6 @@ printf("frames_per_sec=%lf  speed=%lf\n", frames_per_sec, performance.game_speed
 
 int updatescreen(void)
 {
-	/* update sound */
-	sound_update();
 
 	/* if we're not skipping this frame, draw the screen */
 	if (osd_skip_this_frame() == 0)
@@ -1348,15 +1354,17 @@ int updatescreen(void)
 		profiler_mark(PROFILER_END);
 	}
 
+#if 0
 	/* the user interface must be called between vh_update() and osd_update_video_and_audio(), */
 	/* to allow it to overlay things on the game display. We must call it even */
 	/* if the frame is skipped, to keep a consistent timing. */
 	if (handle_user_interface(artwork_get_ui_bitmap()))
 		/* quit if the user asked to */
 		return 1;
+#endif
 
 	/* blit to the screen */
-	update_video_and_audio();
+	//update_video_and_audio();
 
 #if 0
 	/* call the end-of-frame callback */

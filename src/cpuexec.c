@@ -1625,9 +1625,13 @@ static void cpu_vblankcallback(int param)
 	/* is it a real VBLANK? */
 	if (!--vblank_countdown)
 	{
-		/* do we update the screen now? */
-		if (!(Machine->drv->video_attributes & VIDEO_UPDATE_AFTER_VBLANK))
-			time_to_quit = updatescreen();
+    sound_update(); // Sound out to OS
+
+    updatescreen();
+
+    update_audio();
+
+    osd_poll_joysticks();
 
 		/* Set the timer to update the screen */
 		timer_set(TIME_IN_USEC(Machine->drv->vblank_duration), 0, cpu_updatecallback);
@@ -1653,16 +1657,15 @@ static void cpu_vblankcallback(int param)
 
 static void cpu_updatecallback(int param)
 {
-	/* update the screen if we didn't before */
-	if (Machine->drv->video_attributes & VIDEO_UPDATE_AFTER_VBLANK)
-		time_to_quit = updatescreen();
 	vblank = 0;
 
+#if 0
 	/* update IPT_VBLANK input ports */
 	inputport_vblank_end();
 
 	/* reset partial updating */
 	reset_partial_updates();
+#endif
 
 	/* check the watchdog */
 	if (watchdog_counter > 0)
