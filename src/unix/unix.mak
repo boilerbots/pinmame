@@ -183,6 +183,9 @@ endif
 
 ifdef DMD_DIRECT
 MY_CFLAGS += -DDMD_DIRECT
+LDFLAGS   += -L$(HOME)/projects/rpi-rgb-led-matrix/lib
+MY_LIBS += -lrgbmatrix -lpthread
+MY_CFLAGS += -I$(HOME)/projects/rpi-rgb-led-matrix/include
 endif
 
 ifdef DEBUG
@@ -291,10 +294,6 @@ tools: $(ZLIB) $(OBJDIRS) $(TOOLS)
 objdirs: $(MY_OBJDIRS)
 
 #rgbdmd: adafruit.o
-
-LDFLAGS   += -L$(HOME)/projects/rpi-rgb-led-matrix/lib
-MY_LIBS += -lrgbmatrix -lpthread
-MY_CFLAGS += -I$(HOME)/projects/rpi-rgb-led-matrix/include
 
 $(MY_OBJDIRS):
 	-mkdir $@

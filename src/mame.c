@@ -445,7 +445,7 @@ void *soundThread(void *arg)
     sound_update(); // Process sound
     update_audio();
     //pthread_yield();
-    usleep(40000);
+    usleep(10000);
   }
 }
 /*-------------------------------------------------
