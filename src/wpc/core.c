@@ -1660,9 +1660,6 @@ static MACHINE_INIT(core) {
   mech_emuInit();
   OnStateChange(1); /* We have a lift-off */
 
-/* TOM: this causes to draw the static sim text */
-  schedule_full_refresh();
-
 #ifdef VPINMAME
   // DMD USB Init
   if(g_fShowPinDMD && !time_to_reset)

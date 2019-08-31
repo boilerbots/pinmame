@@ -675,7 +675,6 @@ int setrapidfire(struct mame_bitmap *bitmap, int selected)
 				d0 |= flag;
 				set_rapidfire_speed(joy, button, d0);
 				/* tell updatescreen() to clean after us (in case the window changes size) */
-				schedule_full_refresh();
 			}
 		}
 	}
@@ -705,7 +704,6 @@ int setrapidfire(struct mame_bitmap *bitmap, int selected)
 				d0 |= flag;
 				set_rapidfire_speed(joy, button, d0);
 				/* tell updatescreen() to clean after us (in case the window changes size) */
-				schedule_full_refresh();
 			}
 		}
 	}
@@ -746,7 +744,6 @@ int setrapidfire(struct mame_bitmap *bitmap, int selected)
 			d0 |= flag;
 			set_rapidfire_speed(joy, button, d0);
 			/* tell updatescreen() to clean after us (in case the window changes size) */
-			schedule_full_refresh();
 		}
 	}
 
@@ -757,10 +754,6 @@ int setrapidfire(struct mame_bitmap *bitmap, int selected)
 	if (input_ui_pressed(IPT_UI_CONFIGURE))
 		sel = -2;
 
-	if (sel == -1 || sel == -2)
-	{
-		schedule_full_refresh();
-	}
 
 	return sel + 1;
 }

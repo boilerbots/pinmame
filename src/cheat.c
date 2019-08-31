@@ -1925,7 +1925,6 @@ int cheat_menu(struct mame_bitmap * bitmap, int selection)
 			default:
 				firstEntry = 1;
 				submenu_choice = 1;
-				schedule_full_refresh();
 				break;
 		}
 	}
@@ -1934,11 +1933,6 @@ int cheat_menu(struct mame_bitmap * bitmap, int selection)
 		sel = -1;
 	if(input_ui_pressed(IPT_UI_CONFIGURE))
 		sel = -2;
-
-	if((sel == -1) || (sel == -2))
-	{
-		schedule_full_refresh();
-	}
 
 	return sel + 1;
 }
@@ -2282,11 +2276,6 @@ static INT32 UserSelectValueMenu(struct mame_bitmap * bitmap, int selection, Che
 			value = min;
 	}
 
-	if (sel == -1 || sel == -2)
-	{
-		schedule_full_refresh();
-	}
-
 	return sel + 1;
 }
 
@@ -2326,11 +2315,6 @@ static INT32 CommentMenu(struct mame_bitmap * bitmap, int selection, CheatEntry 
 	if(input_ui_pressed(IPT_UI_CONFIGURE))
 	{
 		sel = -2;
-	}
-
-	if (sel == -1 || sel == -2)
-	{
-		schedule_full_refresh();
 	}
 
 	return sel + 1;
@@ -2604,7 +2588,6 @@ static int EnableDisableCheatMenu(struct mame_bitmap * bitmap, int selection, in
 					{
 						submenu_id = 2;
 						submenu_choice = 1;
-						schedule_full_refresh();
 					}
 					else
 					{
@@ -2664,7 +2647,6 @@ static int EnableDisableCheatMenu(struct mame_bitmap * bitmap, int selection, in
 					{
 						submenu_id = 2;
 						submenu_choice = 1;
-						schedule_full_refresh();
 					}
 					else
 					{
@@ -2694,7 +2676,6 @@ static int EnableDisableCheatMenu(struct mame_bitmap * bitmap, int selection, in
 				{
 					submenu_id = 1;
 					submenu_choice = 1;
-					schedule_full_refresh();
 				}
 				else
 				{
@@ -2710,7 +2691,6 @@ static int EnableDisableCheatMenu(struct mame_bitmap * bitmap, int selection, in
 				{
 					submenu_id = 2;
 					submenu_choice = 1;
-					schedule_full_refresh();
 				}
 				else
 				{
@@ -2754,7 +2734,6 @@ static int EnableDisableCheatMenu(struct mame_bitmap * bitmap, int selection, in
 			{
 				submenu_id = 3;
 				submenu_choice = 1;
-				schedule_full_refresh();
 			}
 		}
 	}
@@ -2773,11 +2752,6 @@ static int EnableDisableCheatMenu(struct mame_bitmap * bitmap, int selection, in
 	/* The UI key takes us all the way back out */
 	if(input_ui_pressed(IPT_UI_CONFIGURE))
 		sel = -2;
-
-	if(sel == -1 || sel == -2)
-	{
-		schedule_full_refresh();
-	}
 
 	return sel + 1;
 }
@@ -4555,7 +4529,6 @@ static int EditCheatMenu(struct mame_bitmap * bitmap, CheatEntry * entry, int se
 	{
 		editActive = 0;
 		dirty = 1;
-		schedule_full_refresh();
 	}
 
 	if(dirty)
@@ -4913,11 +4886,7 @@ static int DoSearchMenuClassic(struct mame_bitmap * bitmap, int selection, int s
 		search->oldOptions.delta &= kSearchByteMaskTable[search->bytes];
 	}
 
-	if(	(sel == -1) ||
-		(sel == -2))
-		schedule_full_refresh();
-	else
-		lastPos = sel;
+  lastPos = sel;
 
 	return sel + 1;
 }
@@ -5308,11 +5277,7 @@ static int DoSearchMenu(struct mame_bitmap * bitmap, int selection, int startNew
 	if(input_ui_pressed(IPT_UI_CONFIGURE))
 		sel = -2;
 
-	if(	(sel == -1) ||
-		(sel == -2))
-		schedule_full_refresh();
-	else
-		lastSel = sel;
+  lastSel = sel;
 
 	return sel + 1;
 }
@@ -5464,10 +5429,6 @@ static int AddEditCheatMenu(struct mame_bitmap * bitmap, int selection)
 		sel = -1;
 	if(input_ui_pressed(IPT_UI_CONFIGURE))
 		sel = -2;
-
-	if(	(sel == -1) ||
-		(sel == -2))
-		schedule_full_refresh();
 
 	return sel + 1;
 }
@@ -5804,10 +5765,6 @@ static int ViewSearchResults(struct mame_bitmap * bitmap, int selection, int fir
 	if(input_ui_pressed(IPT_UI_CONFIGURE))
 		sel = -2;
 
-	if(	(sel == -1) ||
-		(sel == -2))
-		schedule_full_refresh();
-
 	return sel + 1;
 }
 
@@ -5993,10 +5950,6 @@ static int ChooseWatch(struct mame_bitmap * bitmap, int selection)
 		sel = -1;
 	if(input_ui_pressed(IPT_UI_CONFIGURE))
 		sel = -2;
-
-	if(	(sel == -1) ||
-		(sel == -2))
-		schedule_full_refresh();
 
 	return sel + 1;
 }
@@ -6505,10 +6458,6 @@ static int EditWatch(struct mame_bitmap * bitmap, WatchInfo * entry, int selecti
 	if(input_ui_pressed(IPT_UI_CONFIGURE))
 		sel = -2;
 
-	if(	(sel == -1) ||
-		(sel == -2))
-		schedule_full_refresh();
-
 	return sel + 1;
 }
 
@@ -6672,11 +6621,6 @@ static int SelectSearchRegions(struct mame_bitmap * bitmap, int selection, Searc
 	if(input_ui_pressed(IPT_UI_CONFIGURE))
 		sel = -2;
 
-	if((sel == -1) || (sel == -2))
-	{
-		schedule_full_refresh();
-	}
-
 	return sel + 1;
 }
 
@@ -6809,11 +6753,6 @@ static int SelectSearch(struct mame_bitmap * bitmap, int selection)
 	if(input_ui_pressed(IPT_UI_CONFIGURE))
 		sel = -2;
 
-	if((sel == -1) || (sel == -2))
-	{
-		schedule_full_refresh();
-	}
-
 	return sel + 1;
 }
 
@@ -6846,11 +6785,6 @@ static INT32 DisplayHelp(struct mame_bitmap * bitmap, int selection)
 	if(input_ui_pressed(IPT_UI_CONFIGURE))
 	{
 		sel = -2;
-	}
-
-	if (sel == -1 || sel == -2)
-	{
-		schedule_full_refresh();
 	}
 
 	return sel + 1;
@@ -7007,7 +6941,6 @@ static int SelectOptions(struct mame_bitmap * bitmap, int selection)
 			case kMenu_SelectSearchRegions:
 			case kMenu_SelectSearch:
 				submenuChoice = 1;
-				schedule_full_refresh();
 				break;
 		}
 	}
@@ -7016,11 +6949,6 @@ static int SelectOptions(struct mame_bitmap * bitmap, int selection)
 		sel = -1;
 	if(input_ui_pressed(IPT_UI_CONFIGURE))
 		sel = -2;
-
-	if((sel == -1) || (sel == -2))
-	{
-		schedule_full_refresh();
-	}
 
 	return sel + 1;
 }

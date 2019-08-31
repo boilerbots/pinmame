@@ -25,10 +25,10 @@
  *
  *************************************/
 
-#define VERBOSE 0
+#define VERBOSE 1
 
 #if VERBOSE
-#define LOG(x)	logerror x
+#define LOG(x)	printf x
 #else
 #define LOG(x)
 #endif

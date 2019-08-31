@@ -162,7 +162,6 @@ static UINT8 visible_area_changed;
 struct mame_display *current_display_ptr = &current_display;
 
 /* video updating */
-static UINT8 full_refresh_pending;
 static int last_partial_scanline;
 
 /* speed computation */
@@ -432,7 +431,6 @@ void *inputThread(void *arg)
   {
     usleep(10000);
     osd_poll_joysticks();
-    //pthread_yield();
   }
 }
 
@@ -444,8 +442,8 @@ void *soundThread(void *arg)
   {
     sound_update(); // Process sound
     update_audio();
-    //pthread_yield();
-    usleep(10000);
+
+    usleep(5000);
   }
 }
 /*-------------------------------------------------
@@ -575,7 +573,9 @@ void run_machine_core(void)
 						mame_fclose(nvram_file);
 				}
 
-        pthread_create(&sound_thread, NULL, soundThread, NULL);
+        if (sound_enabled) {
+          pthread_create(&sound_thread, NULL, soundThread, NULL);
+        }
 
 				/* run the emulation! */
 				cpu_run();
@@ -658,7 +658,6 @@ void mame_pause(int pause)
 	osd_pause(pause);
 	osd_sound_enable(!pause);
 	palette_set_global_brightness_adjust(pause ? options.pause_bright : 1.00);
-	schedule_full_refresh();
 }
 
 
@@ -1119,18 +1118,6 @@ void set_visible_area(int min_x, int max_x, int min_y, int max_y)
 
 
 /*-------------------------------------------------
-	schedule_full_refresh - force a full erase
-	and refresh the next frame
--------------------------------------------------*/
-
-void schedule_full_refresh(void)
-{
-	full_refresh_pending = 1;
-}
-
-
-
-/*-------------------------------------------------
 	reset_partial_updates - reset the partial
 	updating mechanism for a new frame
 -------------------------------------------------*/
@@ -1213,99 +1200,10 @@ void draw_screen(void)
 }
 
 
-/*-------------------------------------------------
-	update_video_and_audio - actually call the
-	OSD layer to perform an update
--------------------------------------------------*/
 void update_audio(void)
 {
-
-	if (sound_stream && sound_enabled) {
-      sound_stream_update(sound_stream);
-  }
-
+  sound_stream_update(sound_stream);
 }
-
-void update_video_and_audio(void)
-{
-	int skipped_it = osd_skip_this_frame();
-
-#ifdef MAME_DEBUG
-	debug_trace_delay = 0;
-#endif
-
-#if 0
-	/* fill in our portion of the display */
-	current_display.changed_flags = 0;
-
-	/* set the main game bitmap */
-	current_display.game_bitmap = Machine->scrbitmap;
-	current_display.game_bitmap_update = Machine->absolute_visible_area;
-	if (!skipped_it)
-		current_display.changed_flags |= GAME_BITMAP_CHANGED;
-
-	/* set the visible area */
-	current_display.game_visible_area = Machine->absolute_visible_area;
-	if (visible_area_changed)
-		current_display.changed_flags |= GAME_VISIBLE_AREA_CHANGED;
-
-	/* set the vector dirty list */
-	if (Machine->drv->video_attributes & VIDEO_TYPE_VECTOR)
-		if (!full_refresh_pending && !ui_dirty && !skipped_it)
-		{
-			current_display.vector_dirty_pixels = vector_dirty_list;
-			current_display.changed_flags |= VECTOR_PIXELS_CHANGED;
-		}
-#endif
-
-#ifdef MAME_DEBUG
-	/* set the debugger bitmap */
-	current_display.debug_bitmap = Machine->debug_bitmap;
-	if (debugger_bitmap_changed)
-		current_display.changed_flags |= DEBUG_BITMAP_CHANGED;
-	debugger_bitmap_changed = 0;
-
-	/* adjust the debugger focus */
-	if (debugger_focus != current_display.debug_focus)
-	{
-		current_display.debug_focus = debugger_focus;
-		current_display.changed_flags |= DEBUG_FOCUS_CHANGED;
-	}
-#endif
-
-#if 0
-	/* set the LED status */
-	if (leds_status != current_display.led_state)
-	{
-		current_display.led_state = leds_status;
-		current_display.changed_flags |= LED_STATE_CHANGED;
-	}
-
-	/* update with data from other parts of the system */
-	palette_update_display(&current_display);
-
-	/* render */
-	//artwork_update_video_and_audio(&current_display);
-#endif
-
-#if 1
-	if (sound_stream && sound_enabled) {
-      sound_stream_update(sound_stream);
-  }
-
-  osd_poll_joysticks();
-#endif
-
-	/* update FPS */
-	recompute_fps(skipped_it);
-
-#if 0
-	/* reset dirty flags */
-	visible_area_changed = 0;
-	if (ui_dirty) ui_dirty--;
-#endif
-}
-
 
 
 /*-------------------------------------------------
@@ -1360,27 +1258,6 @@ int updatescreen(void)
 
   recompute_fps(skipped_it);
 
-#if 0
-	/* the user interface must be called between vh_update() and osd_update_video_and_audio(), */
-	/* to allow it to overlay things on the game display. We must call it even */
-	/* if the frame is skipped, to keep a consistent timing. */
-	if (handle_user_interface(artwork_get_ui_bitmap()))
-		/* quit if the user asked to */
-		return 1;
-#endif
-
-	/* blit to the screen */
-	//update_video_and_audio();
-
-#if 0
-	/* call the end-of-frame callback */
-	if (Machine->drv->video_eof)
-	{
-		profiler_mark(PROFILER_VIDEO);
-		(*Machine->drv->video_eof)();
-		profiler_mark(PROFILER_END);
-	}
-#endif
 
 	return 0;
 }

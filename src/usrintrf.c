@@ -368,7 +368,6 @@ void set_ui_visarea(int xmin, int ymin, int xmax, int ymax)
 static void erase_screen(struct mame_bitmap *bitmap)
 {
 	fillbitmap(bitmap, get_black_pen(), NULL);
-	schedule_full_refresh();
 }
 
 
@@ -1281,8 +1280,6 @@ static void showcharset(struct mame_bitmap *bitmap)
 			}
 		}
 
-		update_video_and_audio();
-
 		if (code_pressed(KEYCODE_LCONTROL) || code_pressed(KEYCODE_RCONTROL))
 		{
 			skip_chars = cpx;
@@ -1509,7 +1506,6 @@ static void showcharset(struct mame_bitmap *bitmap)
 	} while (!input_ui_pressed(IPT_UI_SHOW_GFX) &&
 			!input_ui_pressed(IPT_UI_CANCEL));
 
-	schedule_full_refresh();
 }
 #endif /* PINMAME */
 
@@ -1638,8 +1634,6 @@ static int switchmenu(struct mame_bitmap *bitmap, int selected, UINT32 switch_na
 					entry[sel]->default_value = (in+1)->default_value & entry[sel]->mask;
 			}
 
-			/* tell updatescreen() to clean after us (in case the window changes size) */
-			schedule_full_refresh();
 		}
 	}
 
@@ -1662,8 +1656,6 @@ static int switchmenu(struct mame_bitmap *bitmap, int selected, UINT32 switch_na
 					entry[sel]->default_value = (in-1)->default_value & entry[sel]->mask;
 			}
 
-			/* tell updatescreen() to clean after us (in case the window changes size) */
-			schedule_full_refresh();
 		}
 	}
 
@@ -1677,11 +1669,6 @@ static int switchmenu(struct mame_bitmap *bitmap, int selected, UINT32 switch_na
 
 	if (input_ui_pressed(IPT_UI_CONFIGURE))
 		sel = -2;
-
-	if (sel == -1 || sel == -2)
-	{
-		schedule_full_refresh();
-	}
 
 	return sel + 1;
 }
@@ -1770,9 +1757,6 @@ static int setdefcodesettings(struct mame_bitmap *bitmap,int selected)
 				ret = 1;
 			}
 
-			/* tell updatescreen() to clean after us (in case the window changes size) */
-			schedule_full_refresh();
-
 			record_first_insert = ret != 0;
 		}
 
@@ -1805,8 +1789,6 @@ static int setdefcodesettings(struct mame_bitmap *bitmap,int selected)
 
 			sel |= 1 << SEL_BITS;	/* we'll ask for a key */
 
-			/* tell updatescreen() to clean after us (in case the window changes size) */
-			schedule_full_refresh();
 		}
 	}
 
@@ -1818,8 +1800,6 @@ static int setdefcodesettings(struct mame_bitmap *bitmap,int selected)
 
 	if (sel == -1 || sel == -2)
 	{
-		/* tell updatescreen() to clean after us */
-		schedule_full_refresh();
 
 		record_first_insert = 1;
 	}
@@ -1904,9 +1884,6 @@ static int setcodesettings(struct mame_bitmap *bitmap,int selected)
 				ret = 1;
 			}
 
-			/* tell updatescreen() to clean after us (in case the window changes size) */
-			schedule_full_refresh();
-
 			record_first_insert = ret != 0;
 		}
 
@@ -1939,8 +1916,6 @@ static int setcodesettings(struct mame_bitmap *bitmap,int selected)
 
 			sel |= 1 << SEL_BITS;	/* we'll ask for a key */
 
-			/* tell updatescreen() to clean after us (in case the window changes size) */
-			schedule_full_refresh();
 		}
 	}
 
@@ -1952,8 +1927,6 @@ static int setcodesettings(struct mame_bitmap *bitmap,int selected)
 
 	if (sel == -1 || sel == -2)
 	{
-		schedule_full_refresh();
-
 		record_first_insert = 1;
 	}
 
@@ -1995,7 +1968,6 @@ static int calibratejoysticks(struct mame_bitmap *bitmap,int selected)
 	else
 	{
 		msg = osd_joystick_calibrate_next();
-		schedule_full_refresh();
 		if (msg == 0)
 		{
 			calibration_started = 0;
@@ -2012,11 +1984,6 @@ static int calibratejoysticks(struct mame_bitmap *bitmap,int selected)
 
 	if (input_ui_pressed(IPT_UI_CONFIGURE))
 		sel = -2;
-
-	if (sel == -1 || sel == -2)
-	{
-		schedule_full_refresh();
-	}
 
 	return sel + 1;
 }
@@ -2201,11 +2168,6 @@ static int settraksettings(struct mame_bitmap *bitmap,int selected)
 	if (input_ui_pressed(IPT_UI_CONFIGURE))
 		sel = -2;
 
-	if (sel == -1 || sel == -2)
-	{
-		schedule_full_refresh();
-	}
-
 	return sel + 1;
 }
 
@@ -2273,11 +2235,6 @@ static int mame_stats(struct mame_bitmap *bitmap,int selected)
 			sel = -2;
 	}
 
-	if (sel == -1 || sel == -2)
-	{
-		schedule_full_refresh();
-	}
-
 	return sel + 1;
 }
 
@@ -2314,7 +2271,6 @@ int showcopyright(struct mame_bitmap *bitmap)
 		ui_drawbox(bitmap,0,0,uirotwidth,uirotheight);
 		ui_displaymessagewindow(bitmap,buf);
 
-		update_video_and_audio();
 		if (input_ui_pressed(IPT_UI_CANCEL))
 		{
 			setup_selected = 0;////
@@ -2344,7 +2300,6 @@ int showcopyright(struct mame_bitmap *bitmap)
 
 	setup_selected = 0;////
 	erase_screen(bitmap);
-	update_video_and_audio();
 
 	return 0;
 }
@@ -2522,11 +2477,6 @@ static int displaygameinfo(struct mame_bitmap *bitmap,int selected)
 			sel = -2;
 	}
 
-	if (sel == -1 || sel == -2)
-	{
-		schedule_full_refresh();
-	}
-
 	return sel + 1;
 }
 
@@ -2635,7 +2585,6 @@ int showgamewarnings(struct mame_bitmap *bitmap)
 			ui_drawbox(bitmap,0,0,uirotwidth,uirotheight);
 			ui_displaymessagewindow(bitmap,buf);
 
-			update_video_and_audio();
 			if (input_ui_pressed(IPT_UI_CANCEL))
 				return 1;
 			if (code_pressed_memory(KEYCODE_O) ||
@@ -2648,7 +2597,6 @@ int showgamewarnings(struct mame_bitmap *bitmap)
 	}
 
 	erase_screen(bitmap);
-	update_video_and_audio();
 
 	return 0;
 }
@@ -2659,18 +2607,8 @@ int showgameinfo(struct mame_bitmap *bitmap)
 	/* clear the input memory */
 	while (code_read_async() != CODE_NONE) {};
 
-	while (displaygameinfo(bitmap,0) == 1)
-	{
-		update_video_and_audio();
-	}
-
 
 	erase_screen(bitmap);
-	/* make sure that the screen is really cleared, in case autoframeskip kicked in */
-	update_video_and_audio();
-	update_video_and_audio();
-	update_video_and_audio();
-	update_video_and_audio();
 
 	return 0;
 }
@@ -2933,7 +2871,6 @@ static int displayhistory (struct mame_bitmap *bitmap, int selected)
 
 	if (sel == -1 || sel == -2)
 	{
-		schedule_full_refresh();
 
 		/* force buffer to be recreated */
 		if (buf)
@@ -3055,10 +2992,6 @@ int memcard_menu(struct mame_bitmap *bitmap, int selection)
 		if (input_ui_pressed(IPT_UI_CONFIGURE))
 			sel = -2;
 
-		if (sel == -1 || sel == -2)
-		{
-			schedule_full_refresh();
-		}
 	}
 
 	return sel + 1;
@@ -3280,7 +3213,6 @@ static int setup_menu(struct mame_bitmap *bitmap, int selected)
 			case UI_CHEAT:
 			case UI_MEMCARD:
 				sel |= 1 << SEL_BITS;
-				schedule_full_refresh();
 				break;
 
 			case UI_RESET:
@@ -3299,11 +3231,6 @@ static int setup_menu(struct mame_bitmap *bitmap, int selected)
 	{
 		menu_lastselected = sel;
 		sel = -1;
-	}
-
-	if (sel == -1)
-	{
-		schedule_full_refresh();
 	}
 
 	return sel + 1;
@@ -3755,7 +3682,6 @@ static int on_screen_display(struct mame_bitmap *bitmap, int selected)
 	{
 		sel = -1;
 
-		schedule_full_refresh();
 	}
 
 	return sel + 1;
@@ -3832,7 +3758,6 @@ void do_loadsave(struct mame_bitmap *bitmap, int request_loadsave)
 		else
 			displaymessage(bitmap, "Select position to load from");
 
-		update_video_and_audio();
 		reset_partial_updates();
 
 		if (input_ui_pressed(IPT_UI_CANCEL))
@@ -3888,7 +3813,6 @@ void ui_show_fps_set(int show)
 	{
 		showfps = 0;
 		showfpstemp = 0;
-		schedule_full_refresh();
 	}
 }
 
@@ -3908,7 +3832,6 @@ void ui_show_profiler_set(int show)
 	{
 		show_profiler = 0;
 		profiler_stop();
-		schedule_full_refresh();
 	}
 }
 
@@ -3959,8 +3882,6 @@ void ui_display_fps(struct mame_bitmap *bitmap)
 	if (showfpstemp)
 	{
 		showfpstemp--;
-		if (!showfps && showfpstemp == 0)
-			schedule_full_refresh();
 	}
 #endif
 }
@@ -4005,11 +3926,7 @@ int handle_user_interface(struct mame_bitmap *bitmap)
 		if (osd_selected != 0)
 		{
 			osd_selected = 0;	/* disable on screen display */
-			schedule_full_refresh();
 		}
-#ifdef XMAME
-		update_video_and_audio(); /* for rapid-fire support */
-#endif
 	}
 	if (setup_selected != 0) setup_selected = setup_menu(bitmap, setup_selected);
 
@@ -4019,7 +3936,6 @@ int handle_user_interface(struct mame_bitmap *bitmap)
 		if (setup_selected != 0)
 		{
 			setup_selected = 0; /* disable setup menu */
-			schedule_full_refresh();
 		}
 	}
 	if (osd_selected != 0) osd_selected = on_screen_display(bitmap, osd_selected);
@@ -4152,7 +4068,6 @@ int handle_user_interface(struct mame_bitmap *bitmap)
 				if (osd_selected != 0)
 				{
 					osd_selected = 0;	/* disable on screen display */
-					schedule_full_refresh();
 				}
 			}
 			if (setup_selected != 0) setup_selected = setup_menu(bitmap, setup_selected);
@@ -4163,7 +4078,6 @@ int handle_user_interface(struct mame_bitmap *bitmap)
 				if (setup_selected != 0)
 				{
 					setup_selected = 0; /* disable setup menu */
-					schedule_full_refresh();
 				}
 			}
 			if (osd_selected != 0) osd_selected = on_screen_display(bitmap, osd_selected);
@@ -4175,12 +4089,8 @@ int handle_user_interface(struct mame_bitmap *bitmap)
 			{
 				displaymessage(bitmap, messagetext);
 
-				if (--messagecounter == 0)
-					schedule_full_refresh();
 			}
 
-			update_video_and_audio();
-			reset_partial_updates();
 		}
 
 		if (code_pressed(KEYCODE_LSHIFT) || code_pressed(KEYCODE_RSHIFT))
@@ -4191,7 +4101,6 @@ int handle_user_interface(struct mame_bitmap *bitmap)
 			mame_pause(0);
 		}
 
-		schedule_full_refresh();
 	}
 #ifdef VPINMAME
   }
@@ -4202,8 +4111,6 @@ int handle_user_interface(struct mame_bitmap *bitmap)
 	{
 		displaymessage(bitmap, messagetext);
 
-		if (--messagecounter == 0)
-			schedule_full_refresh();
 	}
 
 
