@@ -1183,14 +1183,16 @@ int should_sleep_idle()
 // to flipper input.  By distributing the emulation more evenly over a frame, it creates more opportunities
 // for the emulated machine to "see" the input and respond to it before the pinball simulator starts to draw its frame.
 
+int globalVideoDelay = 0;
+
 void throttle_speed_part(int part, int totalparts)
 {
-	//!! TODO defined in video.c windows, needs to be implemented
+  usleep(globalVideoDelay);
 }
 
 // speed throttling
 //RTH from video.c windows
-int g_low_latency_throttle = 0;
+int g_low_latency_throttle = 1;
 
 int g_iThrottleAdj = 0;
 

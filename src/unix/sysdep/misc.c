@@ -45,13 +45,13 @@ Version 0.2, May 2000
 */
 uclock_t uclock(void)
 {
-  static uclock_t init_sec = 0;
+  //static uclock_t init_sec = 0;
   struct timeval tv;
   
   gettimeofday(&tv, 0);
-  if (init_sec == 0) init_sec = tv.tv_sec;
+  //if (init_sec == 0) init_sec = tv.tv_sec;
   
-  return (tv.tv_sec - init_sec) * 1000000 + tv.tv_usec;
+  return (tv.tv_sec * 1000000) + tv.tv_usec;
 }
 #else
 

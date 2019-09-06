@@ -25,7 +25,7 @@
  *
  *************************************/
 
-#define VERBOSE 1
+//#define VERBOSE 1
 
 #if VERBOSE
 #define LOG(x)	printf x
@@ -276,6 +276,11 @@ int cpu_init(void)
 		/* compute the cycle times */
 		sec_to_cycles[cpunum] = cpu[cpunum].clockscale * Machine->drv->cpu[cpunum].cpu_clock;
 		cycles_to_sec[cpunum] = 1.0 / sec_to_cycles[cpunum];
+#if 0
+    printf("\nCPU:%d clock=%d scale=%lf sec_to_cycles=%lf cycles_to_sec=%lf\n",
+        cpunum, Machine->drv->cpu[cpunum].cpu_clock,  cpu[cpunum].clockscale,
+        sec_to_cycles[cpunum], cycles_to_sec[cpunum]);
+#endif
 
 		/* initialize this CPU */
 		if (cpuintrf_init_cpu(cpunum, cputype))
@@ -283,7 +288,7 @@ int cpu_init(void)
 	}
 	
 	/* compute the perfect interleave factor */
-	compute_perfect_interleave();
+	//compute_perfect_interleave();
 
 	/* save some stuff in tag 0 */
 	state_save_set_current_tag(0);
@@ -1035,7 +1040,7 @@ void cpunum_set_clockscale(int cpunum, double clockscale)
 	cycles_to_sec[cpunum] = 1.0 / sec_to_cycles[cpunum];
 
 	/* re-compute the perfect interleave factor */
-	compute_perfect_interleave();
+	//compute_perfect_interleave();
 }
 
 

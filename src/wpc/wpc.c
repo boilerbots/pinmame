@@ -1269,6 +1269,7 @@ PINMAME_VIDEO_UPDATE(wpcdmd_update) {
   }
   offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
 
+
 #if 0
 	{
 extern cycles_t start_time;

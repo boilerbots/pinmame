@@ -130,7 +130,7 @@
 
 ***************************************************************************/
 
-#define FRAMES_PER_FPS_UPDATE		12
+#define FRAMES_PER_FPS_UPDATE		30
 
 
 /***************************************************************************
@@ -169,7 +169,7 @@ static cycles_t last_fps_time;
 static int frames_since_last_fps;
 static int rendered_frames_since_last_fps;
 static int vfcount;
-static struct performance_info performance;
+struct performance_info performance;
 
 /* misc other statics */
 static int settingsloaded;
@@ -224,6 +224,8 @@ void update_audio(void);
 
 extern struct sound_stream_struct *sound_stream;
 extern int		sound_enabled;
+extern int globalVideoDelay;
+
 static pthread_t input_thread;
 static pthread_t sound_thread;
 /***************************************************************************
@@ -1220,14 +1222,46 @@ static void recompute_fps(int skipped_it)
 	/* if we didn't skip this frame, we may be able to compute a new FPS */
 	if (!skipped_it && frames_since_last_fps >= FRAMES_PER_FPS_UPDATE)
 	{
-		cycles_t cps = osd_cycles_per_second();
 		cycles_t curr = osd_cycles();
-		double seconds_elapsed = (double)(curr - last_fps_time) * (1.0 / (double)cps);
+		double seconds_elapsed = (double)(curr - last_fps_time) / (double)1.0e6;
 		double frames_per_sec = (double)frames_since_last_fps / seconds_elapsed;
 		/* compute the performance data */
 		performance.game_speed_percent = 100.0 * frames_per_sec / Machine->drv->frames_per_second;
 		performance.frames_per_second = (double)rendered_frames_since_last_fps / seconds_elapsed;
-printf("frames_per_sec=%lf  speed=%lf\n", frames_per_sec, performance.game_speed_percent);
+printf("frames_per_sec=%lf  speed=%lf  ", frames_per_sec, performance.game_speed_percent);
+
+#if 0
+    int increment = 0;
+    if (performance.game_speed_percent > 105.0)
+    {
+      increment = -1;
+    } else if (performance.game_speed_percent < 95.0) {
+      increment = 1;
+    }
+    if (increment)
+    {
+			for(int cpu = 0; cpu < cpu_gettotalcpu(); cpu++ )
+      {
+        double overclock = timer_get_overclock(cpu);
+        if (overclock > 0.1)
+        {
+          overclock += 0.01 * increment;
+          timer_set_overclock(cpu, overclock);
+          printf(" overclock=%lf ", overclock);
+        }
+      }
+    }
+#else
+  static int kP = 200;
+  static int kI;
+
+  if (performance.frames_per_second > 0) 
+  {
+    globalVideoDelay = (performance.frames_per_second * kP) / 4;
+    printf("  usleep=%d", globalVideoDelay);
+  }
+#endif
+printf("\n");
 
 		/* reset the info */
 		last_fps_time = curr;
@@ -1246,7 +1280,8 @@ printf("frames_per_sec=%lf  speed=%lf\n", frames_per_sec, performance.game_speed
 
 int updatescreen(void)
 {
-	int skipped_it = osd_skip_this_frame();
+	//int skipped_it = osd_skip_this_frame();
+  int skipped_it = 0;
 
 	/* if we're not skipping this frame, draw the screen */
 	if (!skipped_it)
@@ -1257,7 +1292,6 @@ int updatescreen(void)
 	}
 
   recompute_fps(skipped_it);
-
 
 	return 0;
 }
@@ -1352,16 +1386,22 @@ int mame_find_cpu_index(const char *tag)
 struct MachineCPU *machine_add_cpu(struct InternalMachineDriver *machine, const char *tag, int type, int cpuclock)
 {
 	int cpunum;
+  //printf("machine_add_cpu: ");
 
 	for (cpunum = 0; cpunum < MAX_CPU; cpunum++)
+  {
+    //printf("cpu_type=%d ", machine->cpu[cpunum].cpu_type);
 		if (machine->cpu[cpunum].cpu_type == 0)
 		{
+      //printf("type=%d  clock=%d \n", type, cpuclock);
 			machine->cpu[cpunum].tag = tag;
 			machine->cpu[cpunum].cpu_type = type;
 			machine->cpu[cpunum].cpu_clock = cpuclock;
 			return &machine->cpu[cpunum];
 		}
+  }
 
+  //printf("\n");
 	logerror("Out of CPU's!\n");
 	return NULL;
 }
